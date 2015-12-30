@@ -8,10 +8,13 @@ renderer.setClearColor( 0xffffff, 0);
 
 var ARENA_WIDTH = 160;
 var ARENA_HEIGHT = 80;
+var BALLS_NUM = 10;
 
 initNet();
 var balls = new Array();
-balls.push(createBallAtRandLocation());
+for (var i=0 ; i < BALLS_NUM ; i++){
+	balls.push(createBallAtRandLocation());
+}
 
 var ambientLight = new THREE.AmbientLight(0xacacac);
 scene.add(ambientLight);
@@ -34,7 +37,8 @@ render();
 
 function render() {
 	requestAnimationFrame( render );
-	handleBallsMovement();
+
+	balls.forEach(handleBallMovement);
 
 	renderer.render( scene, camera );
 }
@@ -79,40 +83,33 @@ function initWalls() {
 function createBallAtRandLocation() {
 	var ball = new Ball();
 	scene.add(ball.getMesh());
-	//ball.setX((Math.random() * ARENA_WIDTH) - ARENA_WIDTH  / 2);
-	//ball.setY((Math.random() * ARENA_HEIGHT) - ARENA_HEIGHT / 2);
-	ball.setX(30);
-	ball.setY(30);
-	ball.heading = 1;
+	ball.setX((Math.random() * ARENA_WIDTH) - ARENA_WIDTH  / 2);
+	ball.setY((Math.random() * ARENA_HEIGHT) - ARENA_HEIGHT / 2);
 	return ball
 }
 
-function handleBallsMovement() {
+function handleBallMovement(element, index, array) {
 	var ballsSpeed = 0.5;
-	var i;
-	for (i = 0; i < balls.length; i++) {
-		var mesh = balls[i].getMesh();
-		var headingAngle = normalizeAngle(balls[i].heading);
+	var mesh = element.getMesh();
+	var headingAngle = normalizeAngle(element.heading);
+	var ballRadius = element.ballRadius;
 
-		if (mesh.position.x > ARENA_WIDTH/2 && isHeadingRight(headingAngle) == true) {
-			headingAngle = Math.random() * Math.PI + Math.PI;
-		}
-		else if (mesh.position.x < -(ARENA_WIDTH/2) && isHeadingRight(headingAngle) == false){
-			headingAngle = Math.random() * Math.PI;
-		}
-		else if (mesh.position.y > ARENA_HEIGHT/2 && isHeadingUp(headingAngle) == true){
-			headingAngle = Math.random() * Math.PI + Math.PI/2;
-		}
-		else if (mesh.position.y < -(ARENA_HEIGHT/2) && isHeadingUp(headingAngle) == false){
-			headingAngle = Math.random() * Math.PI + Math.PI*3/2;
-		}
-
-		balls[i].heading = headingAngle;
-
-		mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* ballsSpeed;
-		mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* ballsSpeed;
-
+	if (mesh.position.x + ballRadius > ARENA_WIDTH/2 && isHeadingRight(headingAngle) == true) {
+		headingAngle = Math.random() * Math.PI + Math.PI;
 	}
+	else if (mesh.position.x - ballRadius < -(ARENA_WIDTH/2) && isHeadingRight(headingAngle) == false){
+		headingAngle = Math.random() * Math.PI;
+	}
+	else if (mesh.position.y + ballRadius > ARENA_HEIGHT/2 && isHeadingUp(headingAngle) == true){
+		headingAngle = Math.random() * Math.PI + Math.PI/2;
+	}
+	else if (mesh.position.y - ballRadius < -(ARENA_HEIGHT/2) && isHeadingUp(headingAngle) == false){
+		headingAngle = Math.random() * Math.PI + Math.PI*3/2;
+	}
+
+	element.heading = headingAngle;
+	mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* ballsSpeed;
+	mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* ballsSpeed;
 }
 
 function isHeadingUp(heading) {
