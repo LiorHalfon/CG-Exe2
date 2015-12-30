@@ -6,8 +6,12 @@ renderer.setSize( window.innerWidth - 5, window.innerHeight - 5);
 document.body.appendChild( renderer.domElement );
 renderer.setClearColor( 0xffffff, 0);
 
+var ARENA_WIDTH = 160;
+var ARENA_HEIGHT = 80;
+
 initNet();
-createBall();
+var balls = new Array();
+balls.push(createBallAtRandLocation());
 
 var ambientLight = new THREE.AmbientLight(0xacacac);
 scene.add(ambientLight);
@@ -24,17 +28,14 @@ camera.position.y = 0;
 camera.position.z = 100;
 camera.lookAt(new THREE.Vector3(0, 0, 1));
 
-var ARENA_WIDTH = 160;
-var ARENA_HEIGHT = 80;
-
-
 initWalls();
 
 render();
 
 function render() {
 	requestAnimationFrame( render );
-	
+	handleBallsMovement();
+
 	renderer.render( scene, camera );
 }
 
@@ -75,9 +76,63 @@ function initWalls() {
 	bottomWall.position.y = -(ARENA_HEIGHT/2 + TOP_WALL_SIZE/2);
 }
 
-function createBall() {
+function createBallAtRandLocation() {
 	var ball = new Ball();
-	scene.add( ball.GetMesh() );
-	ball.setX(10);
-	ball.setY(10);
+	scene.add(ball.getMesh());
+	//ball.setX((Math.random() * ARENA_WIDTH) - ARENA_WIDTH  / 2);
+	//ball.setY((Math.random() * ARENA_HEIGHT) - ARENA_HEIGHT / 2);
+	ball.setX(30);
+	ball.setY(30);
+	ball.heading = 1;
+	return ball
+}
+
+function handleBallsMovement() {
+	var ballsSpeed = 0.5;
+	var i;
+	for (i = 0; i < balls.length; i++) {
+		var mesh = balls[i].getMesh();
+		var headingAngle = normalizeAngle(balls[i].heading);
+
+		if (mesh.position.x > ARENA_WIDTH/2 && isHeadingRight(headingAngle) == true) {
+			headingAngle = Math.random() * Math.PI + Math.PI;
+		}
+		else if (mesh.position.x < -(ARENA_WIDTH/2) && isHeadingRight(headingAngle) == false){
+			headingAngle = Math.random() * Math.PI;
+		}
+		else if (mesh.position.y > ARENA_HEIGHT/2 && isHeadingUp(headingAngle) == true){
+			headingAngle = Math.random() * Math.PI + Math.PI/2;
+		}
+		else if (mesh.position.y < -(ARENA_HEIGHT/2) && isHeadingUp(headingAngle) == false){
+			headingAngle = Math.random() * Math.PI + Math.PI*3/2;
+		}
+
+		balls[i].heading = headingAngle;
+
+		mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* ballsSpeed;
+		mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* ballsSpeed;
+
+	}
+}
+
+function isHeadingUp(heading) {
+	if (heading > Math.PI/2 && heading < Math.PI*3/2 )
+		return false;
+	else
+		return true;
+}
+
+function isHeadingRight(heading) {
+	if (heading < Math.PI)
+		return true;
+	else
+		return false;
+}
+
+function normalizeAngle(angle)
+{
+	var newAngle = angle;
+	while (newAngle < 0) newAngle += Math.PI*2;
+	while (newAngle > Math.PI*2) newAngle -= Math.PI*2;
+	return newAngle;
 }
