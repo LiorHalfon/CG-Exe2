@@ -1,6 +1,6 @@
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
-var renderer = new THREE.WebGLRenderer({ alpha: true, logarithmicDepthBuffer: true });
+var renderer = new THREE.WebGLRenderer({ alpha: true });
 
 renderer.setSize( window.innerWidth - 5, window.innerHeight - 5);
 document.body.appendChild( renderer.domElement );
@@ -11,6 +11,7 @@ var ARENA_HEIGHT = 80;
 var BALLS_NUM = 10;
 
 initNet();
+initWalls();
 var balls = new Array();
 for (var i=0 ; i < BALLS_NUM ; i++){
 	balls.push(createBallAtRandLocation());
@@ -31,8 +32,6 @@ camera.position.y = 0;
 camera.position.z = 100;
 camera.lookAt(new THREE.Vector3(0, 0, 1));
 
-initWalls();
-
 render();
 
 function render() {
@@ -45,39 +44,61 @@ function render() {
 
 function initNet() {
 	var netGeo = new THREE.BoxGeometry(10, 10, 1);
-	var netTexture = new THREE.TextureLoader().load("resources/net2.png");
-	var netMaterial = new THREE.MeshPhongMaterial({color: 0xffffff, map: netTexture});
-	var net = new THREE.Mesh(netGeo, netMaterial);
-	scene.add(net);
+	var netTexture = new THREE.TextureLoader().load(
+			//url to img:
+			"resources/net2.png",
+
+			//When finshed loading:
+			function ( texture ) {
+				var netMaterial = new THREE.MeshPhongMaterial({color: 0xffffff, map: texture});
+				var net = new THREE.Mesh(netGeo, netMaterial);
+				scene.add(net);
+			}
+	);
+
 }
 
 function initWalls() {
 	var SIDE_WALL_SIZE = ARENA_HEIGHT*2;
 	var TOP_WALL_SIZE = ARENA_WIDTH*2;
 
-	var wallTexture = new THREE.TextureLoader().load("resources/wood_background.jpg");
-	var wallMaterial = new THREE.MeshPhongMaterial( {color: 0xffffff, map: wallTexture});
+	var wallTexture = new THREE.TextureLoader().load(
+			'resources/walls.jpg',
+			function ( texture ) {
+				var wallMaterial = new THREE.MeshPhongMaterial( {color: 0xffffff, map: texture});
 
-	var sideWallGeo = new THREE.BoxGeometry(SIDE_WALL_SIZE, SIDE_WALL_SIZE , 1);
-	var topWallGeo = new THREE.BoxGeometry(TOP_WALL_SIZE, TOP_WALL_SIZE , 1);
+				var sideWallGeo = new THREE.BoxGeometry(SIDE_WALL_SIZE, SIDE_WALL_SIZE , 1);
+				var topWallGeo = new THREE.BoxGeometry(TOP_WALL_SIZE, TOP_WALL_SIZE , 1);
 
-	var rightWall = new THREE.Mesh(sideWallGeo, wallMaterial);
-	var leftWall = new THREE.Mesh(sideWallGeo, wallMaterial);
+				var rightWall = new THREE.Mesh(sideWallGeo, wallMaterial);
+				var leftWall = new THREE.Mesh(sideWallGeo, wallMaterial);
 
-	scene.add(rightWall);
-	scene.add(leftWall);
+				scene.add(rightWall);
+				scene.add(leftWall);
 
-	rightWall.position.x = ARENA_WIDTH/2 + SIDE_WALL_SIZE/2;
-	leftWall.position.x = -(ARENA_WIDTH/2 + SIDE_WALL_SIZE/2);
+				rightWall.position.x = ARENA_WIDTH/2 + SIDE_WALL_SIZE/2;
+				leftWall.position.x = -(ARENA_WIDTH/2 + SIDE_WALL_SIZE/2);
 
-	var topWall = new THREE.Mesh(topWallGeo, wallMaterial);
-	var bottomWall = new THREE.Mesh(topWallGeo, wallMaterial);
+				var topWall = new THREE.Mesh(topWallGeo, wallMaterial);
+				var bottomWall = new THREE.Mesh(topWallGeo, wallMaterial);
 
-	scene.add(topWall);
-	scene.add(bottomWall);
+				scene.add(topWall);
+				scene.add(bottomWall);
 
-	topWall.position.y = ARENA_HEIGHT/2 + TOP_WALL_SIZE/2;
-	bottomWall.position.y = -(ARENA_HEIGHT/2 + TOP_WALL_SIZE/2);
+				topWall.position.y = ARENA_HEIGHT/2 + TOP_WALL_SIZE/2;
+				bottomWall.position.y = -(ARENA_HEIGHT/2 + TOP_WALL_SIZE/2);
+			},
+			// Function called when download progresses
+			function ( xhr ) {
+				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+			},
+			// Function called when download errors
+			function ( xhr ) {
+				console.log( 'An error happened' );
+			}
+
+	);
+
 }
 
 function createBallAtRandLocation() {
