@@ -101,16 +101,16 @@ function handleBallMovement(element, index, array) {
 	var ballRadius = element.ballRadius;
 
 	if (mesh.position.x + ballRadius > ARENA_WIDTH/2 && isHeadingRight(headingAngle) == true) {
-		headingAngle = Math.random() * Math.PI + Math.PI;
+		headingAngle = 2*Math.PI - headingAngle;
 	}
 	else if (mesh.position.x - ballRadius < -(ARENA_WIDTH/2) && isHeadingRight(headingAngle) == false){
-		headingAngle = Math.random() * Math.PI;
+		headingAngle = 2*Math.PI - headingAngle;
 	}
 	else if (mesh.position.y + ballRadius > ARENA_HEIGHT/2 && isHeadingUp(headingAngle) == true){
-		headingAngle = Math.random() * Math.PI + Math.PI/2;
+		headingAngle = Math.PI - headingAngle;
 	}
 	else if (mesh.position.y - ballRadius < -(ARENA_HEIGHT/2) && isHeadingUp(headingAngle) == false){
-		headingAngle = Math.random() * Math.PI + Math.PI*3/2;
+		headingAngle = Math.PI - headingAngle;
 	}
 
 	element.heading = headingAngle;
