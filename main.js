@@ -1,5 +1,5 @@
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.1, 1000 );
 var renderer = new THREE.WebGLRenderer({ alpha: true });
 
 renderer.setSize( window.innerWidth - 5, window.innerHeight - 5);
@@ -17,20 +17,13 @@ for (var i=0 ; i < BALLS_NUM ; i++){
 	balls.push(createBallAtRandLocation());
 }
 
-var ambientLight = new THREE.AmbientLight(0xacacac);
+var ambientLight = new THREE.AmbientLight(0x555555);
 scene.add(ambientLight);
 
-var spotLight = new THREE.SpotLight(0xffffff);
-spotLight.intensity = 0.4;
-spotLight.position.set(0, -50, 100);
-spotLight.castShadow = true;
-spotLight.lookAt(0,50,-100);
-scene.add(spotLight);
+initSpotLights();
 
-camera.position.x = 0;
-camera.position.y = 0;
-camera.position.z = 100;
-camera.lookAt(new THREE.Vector3(0, 0, 1));
+camera.position.set(0, -50, 100);
+camera.lookAt(new THREE.Vector3(0,50,-100));
 
 render();
 
@@ -59,46 +52,38 @@ function initNet() {
 }
 
 function initWalls() {
-	var SIDE_WALL_SIZE = ARENA_HEIGHT*2;
-	var TOP_WALL_SIZE = ARENA_WIDTH*2;
+	var WALL_THICKNESS = 3;
+	var WALL_HEIGHT = 15;
+	var SIDE_WALL_SIZE = ARENA_HEIGHT+ WALL_THICKNESS*2;
+	var TOP_WALL_SIZE = ARENA_WIDTH;
 
-	var wallTexture = new THREE.TextureLoader().load(
-			'resources/walls.jpg',
-			function ( texture ) {
-				var wallMaterial = new THREE.MeshPhongMaterial( {color: 0xffffff, map: texture});
 
-				var sideWallGeo = new THREE.BoxGeometry(SIDE_WALL_SIZE, SIDE_WALL_SIZE , 1);
-				var topWallGeo = new THREE.BoxGeometry(TOP_WALL_SIZE, TOP_WALL_SIZE , 1);
+	var wallMaterial = new THREE.MeshPhongMaterial( {  color: 0xA9A9A9, shading: THREE.SmoothShading } );
+	var sideWallGeo = new THREE.BoxGeometry(WALL_THICKNESS, SIDE_WALL_SIZE , WALL_HEIGHT);
+	var topWallGeo = new THREE.BoxGeometry(TOP_WALL_SIZE, WALL_THICKNESS , WALL_HEIGHT);
+	var rightWall = new THREE.Mesh(sideWallGeo, wallMaterial);
+	var leftWall = new THREE.Mesh(sideWallGeo, wallMaterial);
+	scene.add(rightWall);
+	scene.add(leftWall);
+	rightWall.position.x = ARENA_WIDTH/2 + WALL_THICKNESS/2;
+	leftWall.position.x = -(ARENA_WIDTH/2 + WALL_THICKNESS/2);
+	var topWall = new THREE.Mesh(topWallGeo, wallMaterial);
+	var bottomWall = new THREE.Mesh(topWallGeo, wallMaterial);
+	scene.add(topWall);
+	scene.add(bottomWall);
+	topWall.position.y = ARENA_HEIGHT/2 + WALL_THICKNESS/2;
+	bottomWall.position.y = -(ARENA_HEIGHT/2 + WALL_THICKNESS/2);
+	rightWall.position.z = WALL_HEIGHT/2;
+	leftWall.position.z = WALL_HEIGHT/2;
+	topWall.position.z = WALL_HEIGHT/2;
+	bottomWall.position.z = WALL_HEIGHT/2;
 
-				var rightWall = new THREE.Mesh(sideWallGeo, wallMaterial);
-				var leftWall = new THREE.Mesh(sideWallGeo, wallMaterial);
-
-				scene.add(rightWall);
-				scene.add(leftWall);
-
-				rightWall.position.x = ARENA_WIDTH/2 + SIDE_WALL_SIZE/2;
-				leftWall.position.x = -(ARENA_WIDTH/2 + SIDE_WALL_SIZE/2);
-
-				var topWall = new THREE.Mesh(topWallGeo, wallMaterial);
-				var bottomWall = new THREE.Mesh(topWallGeo, wallMaterial);
-
-				scene.add(topWall);
-				scene.add(bottomWall);
-
-				topWall.position.y = ARENA_HEIGHT/2 + TOP_WALL_SIZE/2;
-				bottomWall.position.y = -(ARENA_HEIGHT/2 + TOP_WALL_SIZE/2);
-			},
-			// Function called when download progresses
-			function ( xhr ) {
-				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-			},
-			// Function called when download errors
-			function ( xhr ) {
-				console.log( 'An error happened' );
-			}
-
-	);
-
+	// Init Floor
+	var floorGeo = new THREE.BoxGeometry(ARENA_WIDTH, ARENA_HEIGHT , 1);
+	var floorMaterial = new THREE.MeshPhongMaterial( {  color: 0x696969, shininess: 100, shading: THREE.SmoothShading } );
+	var floor = new THREE.Mesh(floorGeo, floorMaterial);
+	floor.position.z = -0.5;
+	scene.add(floor);
 }
 
 function createBallAtRandLocation() {
@@ -153,4 +138,19 @@ function normalizeAngle(angle)
 	while (newAngle < 0) newAngle += Math.PI*2;
 	while (newAngle > Math.PI*2) newAngle -= Math.PI*2;
 	return newAngle;
+}
+
+function initSpotLights() {
+	var spotLight1 = new THREE.SpotLight(0xffffff);
+	spotLight1.intensity = 1.2;
+	spotLight1.position.set(ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 20);
+	spotLight1.castShadow = true;
+	spotLight1.distance = 200;
+	spotLight1.lookAt(-100, 1, -1);
+	scene.add(spotLight1);
+
+	var spotLight2 = spotLight1.clone();
+	spotLight2.position.set(-ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 20);
+	spotLight2.lookAt(100, 1, -1);
+	scene.add(spotLight2);
 }
