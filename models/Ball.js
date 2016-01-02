@@ -5,6 +5,7 @@ function Ball() {
     this.mesh = new THREE.Mesh( this.sphereGeo, this.sphereMaterial );
     this.heading = Math.random()*(2*Math.PI);
     this.mesh.position.z = this.ballRadius/2;
+    this.gamePoints = 10;
 
     Ball.prototype.getMesh = function() {
         return this.mesh;
@@ -12,11 +13,11 @@ function Ball() {
 
     Ball.prototype.setX = function(x) {
         this.mesh.position.x = x;
-    }
+    };
 
     Ball.prototype.setY = function(y) {
         this.mesh.position.y = y;
-    }
+    };
 
     return this;
 }

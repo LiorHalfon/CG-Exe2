@@ -9,18 +9,19 @@ renderer.setClearColor( 0xffffff, 0);
 var ARENA_WIDTH = 160;
 var ARENA_HEIGHT = 80;
 var BALLS_NUM = 10;
+var WALL_THICKNESS = 3;
 
-initNet();
+var net = initNet();
+var points = 0;
+
 initWalls();
-var balls = new Array();
-for (var i=0 ; i < BALLS_NUM ; i++){
-	balls.push(createBallAtRandLocation());
-}
+var balls = initBalls();
 
 var ambientLight = new THREE.AmbientLight(0x555555);
 scene.add(ambientLight);
 
 initSpotLights();
+document.onkeydown = handleKeyDown;
 
 camera.position.set(0, -50, 100);
 camera.lookAt(new THREE.Vector3(0,50,-100));
@@ -35,7 +36,52 @@ function render() {
 	renderer.render( scene, camera );
 }
 
+// Check whether the key is an arrow
+// If so, make sure the net is still in the box after movement
+// Then move the net
+function handleKeyDown(event) {
+	// Left arrow pressed
+	if(event.keyCode == 37){
+		if(net.position.x - 2 > (-(ARENA_WIDTH/2) + WALL_THICKNESS)) {
+			net.position.x -= 1;
+		}
+	}
+
+	// Up arrow pressed
+	if(event.keyCode == 38){
+		if(net.position.y + 2 < (ARENA_HEIGHT/2 - WALL_THICKNESS)) {
+			net.position.y += 1;
+		}
+	}
+
+	// Right arrow pressed
+	if(event.keyCode == 39){
+		if(net.position.x + 2 < (ARENA_WIDTH/2 - WALL_THICKNESS)) {
+			net.position.x += 1;
+		}
+	}
+
+	// Down arrow pressed
+	if(event.keyCode == 40){
+		if(net.position.y - 2 > (-ARENA_HEIGHT/2 + WALL_THICKNESS)) {
+			net.position.y -= 1;
+		}
+	}
+}
+
 function initNet() {
+	var netGeo = new THREE.BoxGeometry(10, 10, 1);
+	var netMaterial = new THREE.MeshPhongMaterial({color: 0xaaaaff, specular: 0x009900, shininess: 0.5,
+		shading: THREE.SmoothShading } );
+	var mesh = new THREE.Mesh(netGeo, netMaterial);
+	scene.add(mesh);
+	return mesh;
+	/*var net = new Net();
+	scene.add(net.getMesh());*/
+	//return net;
+}
+
+function initNet1() {
 	var netGeo = new THREE.BoxGeometry(10, 10, 1);
 	var netTexture = new THREE.TextureLoader().load(
 			//url to img:
@@ -48,11 +94,9 @@ function initNet() {
 				scene.add(net);
 			}
 	);
-
 }
 
 function initWalls() {
-	var WALL_THICKNESS = 3;
 	var WALL_HEIGHT = 15;
 	var SIDE_WALL_SIZE = ARENA_HEIGHT+ WALL_THICKNESS*2;
 	var TOP_WALL_SIZE = ARENA_WIDTH;
@@ -86,12 +130,20 @@ function initWalls() {
 	scene.add(floor);
 }
 
+function initBalls(){
+	var balls = new Array();
+	for (var i=0 ; i < BALLS_NUM ; i++){
+		balls.push(createBallAtRandLocation());
+	}
+	return balls;
+}
+
 function createBallAtRandLocation() {
 	var ball = new Ball();
 	scene.add(ball.getMesh());
 	ball.setX((Math.random() * ARENA_WIDTH) - ARENA_WIDTH  / 2);
 	ball.setY((Math.random() * ARENA_HEIGHT) - ARENA_HEIGHT / 2);
-	return ball
+	return ball;
 }
 
 function handleBallMovement(element, index, array) {
@@ -116,6 +168,21 @@ function handleBallMovement(element, index, array) {
 	element.heading = headingAngle;
 	mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* ballsSpeed;
 	mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* ballsSpeed;
+
+	// Check whether ball and net are in the same location
+	if(mesh.position.x <= (net.position.x + ballRadius) &&
+	   mesh.position.x >= (net.position.x - ballRadius) &&
+	   mesh.position.y >= (net.position.y - ballRadius) &&
+	   mesh.position.y <= (net.position.y + ballRadius)){
+		element.sphereMaterial.color = 0x000000;
+		// Tried to remove the ball from the screen like that, didnt work
+		/*array.remove(element);
+		scene.remove(element);*/
+
+		// Raise Points
+		points += element.gamePoints;
+		//$("test").text = points.toString();
+	}
 }
 
 function isHeadingUp(heading) {
