@@ -26,6 +26,8 @@ document.onkeydown = handleKeyDown;
 camera.position.set(0, -50, 100);
 camera.lookAt(new THREE.Vector3(0,50,-100));
 
+var pointsLabel = createPointsTextLabel();
+
 render();
 
 function render() {
@@ -70,30 +72,9 @@ function handleKeyDown(event) {
 }
 
 function initNet() {
-	var netGeo = new THREE.BoxGeometry(10, 10, 1);
-	var netMaterial = new THREE.MeshPhongMaterial({color: 0xaaaaff, specular: 0x009900, shininess: 0.5,
-		shading: THREE.SmoothShading } );
-	var mesh = new THREE.Mesh(netGeo, netMaterial);
-	scene.add(mesh);
-	return mesh;
-	/*var net = new Net();
-	scene.add(net.getMesh());*/
-	//return net;
-}
-
-function initNet1() {
-	var netGeo = new THREE.BoxGeometry(10, 10, 1);
-	var netTexture = new THREE.TextureLoader().load(
-			//url to img:
-			"resources/net2.png",
-
-			//When finshed loading:
-			function ( texture ) {
-				var netMaterial = new THREE.MeshPhongMaterial({color: 0xffffff, map: texture});
-				var net = new THREE.Mesh(netGeo, netMaterial);
-				scene.add(net);
-			}
-	);
+	var net = new Net();
+	scene.add(net.getMesh());
+	return net.getMesh();
 }
 
 function initWalls() {
@@ -140,17 +121,45 @@ function initBalls(){
 
 function createBallAtRandLocation() {
 	var ball = new Ball();
+
+	//init the ball by a random type:
+	switch (Math.floor(Math.random()*3)){
+		case 0: //Red Ball
+			ball.type = "Red";
+			ball.speed = 1.5;
+			ball.gamePoints = 20;
+			ball.radius = 1;
+			ball.color = 0xD70000;
+			break;
+		case 1: //Yellow Ball
+			ball.type = "Yellow";
+			ball.speed = 1;
+			ball.gamePoints = 10;
+			ball.radius = 3;
+			ball.color = 0xFFDF00;
+			break;
+		case 2: // Blue ball
+		default:
+			ball.type = "Blue";
+			ball.speed = 0.5;
+			ball.gamePoints = 5;
+			ball.radius = 5;
+			ball.color = 0x8CBED6;
+			break;
+	}
+
+	ball.createBall();
 	scene.add(ball.getMesh());
 	ball.setX((Math.random() * ARENA_WIDTH) - ARENA_WIDTH  / 2);
 	ball.setY((Math.random() * ARENA_HEIGHT) - ARENA_HEIGHT / 2);
+
 	return ball;
 }
 
 function handleBallMovement(element, index, array) {
-	var ballsSpeed = 0.5;
 	var mesh = element.getMesh();
 	var headingAngle = normalizeAngle(element.heading);
-	var ballRadius = element.ballRadius;
+	var ballRadius = element.radius;
 
 	if (mesh.position.x + ballRadius > ARENA_WIDTH/2 && isHeadingRight(headingAngle) == true) {
 		headingAngle = 2*Math.PI - headingAngle;
@@ -166,22 +175,23 @@ function handleBallMovement(element, index, array) {
 	}
 
 	element.heading = headingAngle;
-	mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* ballsSpeed;
-	mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* ballsSpeed;
+	mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* element.speed;
+	mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* element.speed;
 
 	// Check whether ball and net are in the same location
 	if(mesh.position.x <= (net.position.x + ballRadius) &&
 	   mesh.position.x >= (net.position.x - ballRadius) &&
 	   mesh.position.y >= (net.position.y - ballRadius) &&
 	   mesh.position.y <= (net.position.y + ballRadius)){
-		element.sphereMaterial.color = 0x000000;
-		// Tried to remove the ball from the screen like that, didnt work
-		/*array.remove(element);
-		scene.remove(element);*/
+
+		// Delete the ball from the balls array and from the scene
+		array.splice(index, 1);
+		scene.remove(element.getMesh());
+
 
 		// Raise Points
 		points += element.gamePoints;
-		//$("test").text = points.toString();
+		pointsLabel.innerHTML = "Points: " + points.toString();
 	}
 }
 
@@ -220,4 +230,20 @@ function initSpotLights() {
 	spotLight2.position.set(-ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 20);
 	spotLight2.lookAt(100, 1, -1);
 	scene.add(spotLight2);
+}
+
+function createPointsTextLabel() {
+	var pointsLabel = document.createElement('div');
+
+	//TODO:  Move all this code to the css file.
+	pointsLabel.style.position = 'absolute';
+	pointsLabel.style.width = 100;
+	pointsLabel.style.height = 100;
+	pointsLabel.style.backgroundColor = "white";
+	pointsLabel.innerHTML = "Points: ";
+	pointsLabel.style.top = 20 + 'px';
+	pointsLabel.style.left = 200 + 'px';
+	document.body.appendChild(pointsLabel);
+
+	return pointsLabel;
 }

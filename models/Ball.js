@@ -1,11 +1,25 @@
 function Ball() {
-    this.ballRadius = 3;
-    this.sphereGeo = new THREE.SphereGeometry(this.ballRadius);
-    this.sphereMaterial = new THREE.MeshPhongMaterial( { color: 0xaaddff, specular: 0x009900, shininess: 0.5, shading: THREE.SmoothShading } );
-    this.mesh = new THREE.Mesh( this.sphereGeo, this.sphereMaterial );
-    this.heading = Math.random()*(2*Math.PI);
-    this.mesh.position.z = this.ballRadius/2;
+    // Default values - will change for each ball type
+    this.radius = 3;
     this.gamePoints = 10;
+    this.speed = 0.5;
+    this.type = "Default"; //Types: Red, Yellow, Blue
+    this.color = 0xaaddff;
+    ///////////////////////
+
+    this.mesh;
+    this.heading = Math.random()*(2*Math.PI);
+
+
+
+    Ball.prototype.createBall = function() {
+        var sphereGeo = new THREE.SphereGeometry(this.radius);
+        var sphereMaterial = new THREE.MeshPhongMaterial( { color: this.color, specular: 0x009900, shininess: 0.5, shading: THREE.SmoothShading } );
+        this.mesh = new THREE.Mesh( sphereGeo, sphereMaterial );
+
+        // Set Height to be on the floor
+        this.mesh.position.z = this.radius/2;
+    }
 
     Ball.prototype.getMesh = function() {
         return this.mesh;
