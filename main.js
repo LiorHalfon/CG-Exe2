@@ -10,6 +10,7 @@ var ARENA_WIDTH = 160;
 var ARENA_HEIGHT = 80;
 var BALLS_NUM = 10;
 var WALL_THICKNESS = 3;
+var SPEED_BOOST = 0.003;
 
 var net = initNet();
 var points = 0;
@@ -44,29 +45,29 @@ function render() {
 function handleKeyDown(event) {
 	// Left arrow pressed
 	if(event.keyCode == 37){
-		if(net.position.x - 2 > (-(ARENA_WIDTH/2) + WALL_THICKNESS)) {
-			net.position.x -= 1;
+		if(net.getMesh().position.x - 2 > (-(ARENA_WIDTH/2) + WALL_THICKNESS)) {
+			net.getMesh().position.x -= net.step;
 		}
 	}
 
 	// Up arrow pressed
 	if(event.keyCode == 38){
-		if(net.position.y + 2 < (ARENA_HEIGHT/2 - WALL_THICKNESS)) {
-			net.position.y += 1;
+		if(net.getMesh().position.y + 2 < (ARENA_HEIGHT/2 - WALL_THICKNESS)) {
+			net.getMesh().position.y += net.step;
 		}
 	}
 
 	// Right arrow pressed
 	if(event.keyCode == 39){
-		if(net.position.x + 2 < (ARENA_WIDTH/2 - WALL_THICKNESS)) {
-			net.position.x += 1;
+		if(net.getMesh().position.x + 2 < (ARENA_WIDTH/2 - WALL_THICKNESS)) {
+			net.getMesh().position.x += net.step;
 		}
 	}
 
 	// Down arrow pressed
 	if(event.keyCode == 40){
-		if(net.position.y - 2 > (-ARENA_HEIGHT/2 + WALL_THICKNESS)) {
-			net.position.y -= 1;
+		if(net.getMesh().position.y - 2 > (-ARENA_HEIGHT/2 + WALL_THICKNESS)) {
+			net.getMesh().position.y -= net.step;
 		}
 	}
 }
@@ -74,7 +75,7 @@ function handleKeyDown(event) {
 function initNet() {
 	var net = new Net();
 	scene.add(net.getMesh());
-	return net.getMesh();
+	return net;
 }
 
 function initWalls() {
@@ -127,24 +128,30 @@ function createBallAtRandLocation() {
 		case 0: //Red Ball
 			ball.type = "Red";
 			ball.speed = 1.5;
+			ball.maxSpeed = 4;
 			ball.gamePoints = 20;
 			ball.radius = 1;
 			ball.color = 0xD70000;
+			ball.amountOfRounds = 900;
 			break;
 		case 1: //Yellow Ball
 			ball.type = "Yellow";
 			ball.speed = 1;
+			ball.maxSpeed = 3.5;
 			ball.gamePoints = 10;
 			ball.radius = 3;
 			ball.color = 0xFFDF00;
+			ball.amountOfRounds = 1500;
 			break;
 		case 2: // Blue ball
 		default:
 			ball.type = "Blue";
 			ball.speed = 0.5;
+			ball.maxSpeed = 3;
 			ball.gamePoints = 5;
 			ball.radius = 5;
 			ball.color = 0x8CBED6;
+			ball.amountOfRounds = 2000;
 			break;
 	}
 
@@ -178,21 +185,48 @@ function handleBallMovement(element, index, array) {
 	mesh.position.x += Math.cos(Math.PI/2 - headingAngle)* element.speed;
 	mesh.position.y += Math.sin(Math.PI/2 - headingAngle)* element.speed;
 
-	// Check whether ball and net are in the same location
-	if(mesh.position.x <= (net.position.x + ballRadius) &&
-	   mesh.position.x >= (net.position.x - ballRadius) &&
-	   mesh.position.y >= (net.position.y - ballRadius) &&
-	   mesh.position.y <= (net.position.y + ballRadius)){
-
-		// Delete the ball from the balls array and from the scene
-		array.splice(index, 1);
-		scene.remove(element.getMesh());
-
-
-		// Raise Points
-		points += element.gamePoints;
-		pointsLabel.innerHTML = "Points: " + points.toString();
+	// Speed Up!
+	if(element.speed < element.maxSpeed) {
+		element.speed += SPEED_BOOST;
 	}
+
+	// Decrease lifetime
+	element.amountOfRounds--;
+
+	// Check whether ball and net are in the same location
+	if(isBallInNet(mesh)){
+		handleBallInNet(element, index, array);
+	}
+	// Lifetime over, remove ball without adding points
+	else if(element.amountOfRounds == 0){
+		disposeBall(element, index, array);
+	}
+
+	// Check end of game
+	if(array.length == 0){
+		pointsLabel.innerHTML = "Game Ended!! (^-^) Points: " + points.toString();
+	}
+}
+
+function isBallInNet(ballMesh){
+	return (ballMesh.position.x <= (net.getMesh().position.x + net.getWidth()/4) &&
+	        ballMesh.position.x >= (net.getMesh().position.x - net.getWidth()/4) &&
+        	ballMesh.position.y >= (net.getMesh().position.y - net.getWidth()/4) &&
+	        ballMesh.position.y <= (net.getMesh().position.y + net.getWidth()/4));
+}
+
+function handleBallInNet(ball, index, array){
+	disposeBall(ball, index, array);
+
+	// Raise Points
+	points += ball.gamePoints;
+	pointsLabel.innerHTML = "Points: " + points.toString();
+}
+
+// Delete the ball from the balls array and from the scene
+function disposeBall(ball, index, array){
+	array.splice(index, 1);
+	scene.remove(ball.getMesh());
 }
 
 function isHeadingUp(heading) {
@@ -234,15 +268,8 @@ function initSpotLights() {
 
 function createPointsTextLabel() {
 	var pointsLabel = document.createElement('div');
-
-	//TODO:  Move all this code to the css file.
-	pointsLabel.style.position = 'absolute';
-	pointsLabel.style.width = 100;
-	pointsLabel.style.height = 100;
-	pointsLabel.style.backgroundColor = "white";
+	pointsLabel.id = "points";
 	pointsLabel.innerHTML = "Points: ";
-	pointsLabel.style.top = 20 + 'px';
-	pointsLabel.style.left = 200 + 'px';
 	document.body.appendChild(pointsLabel);
 
 	return pointsLabel;

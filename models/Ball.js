@@ -5,6 +5,8 @@ function Ball() {
     this.speed = 0.5;
     this.type = "Default"; //Types: Red, Yellow, Blue
     this.color = 0xaaddff;
+    this.maxSpeed = 1;
+    this.amountOfRounds = 100;
     ///////////////////////
 
     this.mesh;
