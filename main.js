@@ -10,9 +10,9 @@ var ARENA_WIDTH = 160;
 var ARENA_HEIGHT = 80;
 var BALLS_NUM = 10;
 var WALL_THICKNESS = 3;
-var SPEED_BOOST = 0.003;
+var SPEED_BOOST = 0.001;
 
-var net = initNet();
+var player = initPlayer();
 var points = 0;
 
 initWalls();
@@ -40,42 +40,42 @@ function render() {
 }
 
 // Check whether the key is an arrow
-// If so, make sure the net is still in the box after movement
-// Then move the net
+// If so, make sure the player is still in the box after movement
+// Then move the player
 function handleKeyDown(event) {
 	// Left arrow pressed
 	if(event.keyCode == 37){
-		if(net.getMesh().position.x - 2 > (-(ARENA_WIDTH/2) + WALL_THICKNESS)) {
-			net.getMesh().position.x -= net.step;
+		if(player.getMesh().position.x - 2 > (-(ARENA_WIDTH/2) + WALL_THICKNESS)) {
+			player.getMesh().position.x -= player.step;
 		}
 	}
 
 	// Up arrow pressed
 	if(event.keyCode == 38){
-		if(net.getMesh().position.y + 2 < (ARENA_HEIGHT/2 - WALL_THICKNESS)) {
-			net.getMesh().position.y += net.step;
+		if(player.getMesh().position.y + 2 < (ARENA_HEIGHT/2 - WALL_THICKNESS)) {
+			player.getMesh().position.y += player.step;
 		}
 	}
 
 	// Right arrow pressed
 	if(event.keyCode == 39){
-		if(net.getMesh().position.x + 2 < (ARENA_WIDTH/2 - WALL_THICKNESS)) {
-			net.getMesh().position.x += net.step;
+		if(player.getMesh().position.x + 2 < (ARENA_WIDTH/2 - WALL_THICKNESS)) {
+			player.getMesh().position.x += player.step;
 		}
 	}
 
 	// Down arrow pressed
 	if(event.keyCode == 40){
-		if(net.getMesh().position.y - 2 > (-ARENA_HEIGHT/2 + WALL_THICKNESS)) {
-			net.getMesh().position.y -= net.step;
+		if(player.getMesh().position.y - 2 > (-ARENA_HEIGHT/2 + WALL_THICKNESS)) {
+			player.getMesh().position.y -= player.step;
 		}
 	}
 }
 
-function initNet() {
-	var net = new Net();
-	scene.add(net.getMesh());
-	return net;
+function initPlayer() {
+	var player = new Player();
+	scene.add(player.getMesh());
+	return player;
 }
 
 function initWalls() {
@@ -128,7 +128,7 @@ function createBallAtRandLocation() {
 		case 0: //Red Ball
 			ball.type = "Red";
 			ball.speed = 1.5;
-			ball.maxSpeed = 4;
+			ball.maxSpeed = 2.5;
 			ball.gamePoints = 20;
 			ball.radius = 1;
 			ball.color = 0xD70000;
@@ -137,7 +137,7 @@ function createBallAtRandLocation() {
 		case 1: //Yellow Ball
 			ball.type = "Yellow";
 			ball.speed = 1;
-			ball.maxSpeed = 3.5;
+			ball.maxSpeed = 2;
 			ball.gamePoints = 10;
 			ball.radius = 3;
 			ball.color = 0xFFDF00;
@@ -147,7 +147,7 @@ function createBallAtRandLocation() {
 		default:
 			ball.type = "Blue";
 			ball.speed = 0.5;
-			ball.maxSpeed = 3;
+			ball.maxSpeed = 1.5;
 			ball.gamePoints = 5;
 			ball.radius = 5;
 			ball.color = 0x8CBED6;
@@ -193,9 +193,9 @@ function handleBallMovement(element, index, array) {
 	// Decrease lifetime
 	element.amountOfRounds--;
 
-	// Check whether ball and net are in the same location
-	if(isBallInNet(mesh)){
-		handleBallInNet(element, index, array);
+	// Check whether ball and player are in the same location
+	if(isBallInBox(mesh)){
+		handleBallInBox(element, index, array);
 	}
 	// Lifetime over, remove ball without adding points
 	else if(element.amountOfRounds == 0){
@@ -208,14 +208,14 @@ function handleBallMovement(element, index, array) {
 	}
 }
 
-function isBallInNet(ballMesh){
-	return (ballMesh.position.x <= (net.getMesh().position.x + net.getWidth()/4) &&
-	        ballMesh.position.x >= (net.getMesh().position.x - net.getWidth()/4) &&
-        	ballMesh.position.y >= (net.getMesh().position.y - net.getWidth()/4) &&
-	        ballMesh.position.y <= (net.getMesh().position.y + net.getWidth()/4));
+function isBallInBox(ballMesh){
+	return (ballMesh.position.x <= (player.getMesh().position.x + player.getInnerWidth()/2) &&
+	        ballMesh.position.x >= (player.getMesh().position.x - player.getInnerWidth()/2) &&
+        	ballMesh.position.y >= (player.getMesh().position.y - player.getInnerWidth()/2) &&
+	        ballMesh.position.y <= (player.getMesh().position.y + player.getInnerWidth()/2));
 }
 
-function handleBallInNet(ball, index, array){
+function handleBallInBox(ball, index, array){
 	disposeBall(ball, index, array);
 
 	// Raise Points
@@ -254,15 +254,16 @@ function normalizeAngle(angle)
 function initSpotLights() {
 	var spotLight1 = new THREE.SpotLight(0xffffff);
 	spotLight1.intensity = 1.2;
-	spotLight1.position.set(ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 20);
+	spotLight1.position.set(ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 40);
 	spotLight1.castShadow = true;
 	spotLight1.distance = 200;
-	spotLight1.lookAt(-100, 1, -1);
+	spotLight1.lookAt(-ARENA_WIDTH/2,ARENA_HEIGHT/2 , 0);
+	spotLight1.exponent = 6;
 	scene.add(spotLight1);
 
 	var spotLight2 = spotLight1.clone();
-	spotLight2.position.set(-ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 20);
-	spotLight2.lookAt(100, 1, -1);
+	spotLight2.position.set(-ARENA_WIDTH / 2, -ARENA_HEIGHT / 2, 40);
+	spotLight2.lookAt(ARENA_WIDTH/2,ARENA_HEIGHT/2 , 0);
 	scene.add(spotLight2);
 }
 
