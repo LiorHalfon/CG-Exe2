@@ -1,14 +1,5 @@
 
-// --------------------------------------------- //
-// ------- 3D PONG built with Three.JS --------- //
-// -------- Created by Nikhil Suresh ----------- //
-// -------- Three.JS is by Mr. doob  ----------- //
-// --------------------------------------------- //
-
-// ------------------------------------- //
-// ------- GLOBAL VARIABLES ------------ //
-// ------------------------------------- //
-
+// GLOBALS: ///////////////////////////////////////////////////////
 // scene object variables
 var renderer, scene, camera, pointLight, spotLight;
 
@@ -30,16 +21,10 @@ var maxScore = 7;
 
 // set opponent reflexes (0 - easiest, 1 - hardest)
 var difficulty = 0.2;
-
-// ------------------------------------- //
-// ------- GAME FUNCTIONS -------------- //
-// ------------------------------------- //
+////////////////////////////////////////////////////////////////////
 
 function setup()
 {
-	// update the board to reflect the max score for match win
-	document.getElementById("winnerBoard").innerHTML = "First to " + maxScore + " wins!";
-	
 	// now reset player and opponent scores
 	score1 = 0;
 	score2 = 0;
@@ -54,8 +39,8 @@ function setup()
 function createScene()
 {
 	// set the scene size
-	var WIDTH = 640,
-	  HEIGHT = 360;
+	var WIDTH = window.innerWidth - 10,
+	  HEIGHT = 470;
 
 	// set some camera attributes
 	var VIEW_ANGLE = 50,
@@ -581,17 +566,14 @@ function resetBall(loser)
 }
 
 var bounceTime = 0;
-// checks if either player or opponent has reached 7 points
 function matchScoreCheck()
 {
-	// if player has 7 points
 	if (score1 >= maxScore)
 	{
 		// stop the ball
 		ballSpeed = 0;
 		// write to the banner
-		document.getElementById("scores").innerHTML = "Player wins!";		
-		document.getElementById("winnerBoard").innerHTML = "Refresh to play again";
+		document.getElementById("scores").innerHTML = "Player wins!";
 		// make paddle bounce up and down
 		bounceTime++;
 		paddle1.position.z = Math.sin(bounceTime * 0.1) * 10;
@@ -599,14 +581,12 @@ function matchScoreCheck()
 		paddle1.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
 		paddle1.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
 	}
-	// else if opponent has 7 points
 	else if (score2 >= maxScore)
 	{
 		// stop the ball
 		ballSpeed = 0;
 		// write to the banner
 		document.getElementById("scores").innerHTML = "CPU wins!";
-		document.getElementById("winnerBoard").innerHTML = "Refresh to play again";
 		// make paddle bounce up and down
 		bounceTime++;
 		paddle2.position.z = Math.sin(bounceTime * 0.1) * 10;
