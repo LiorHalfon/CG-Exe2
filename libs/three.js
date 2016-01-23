@@ -26461,7 +26461,7 @@ THREE.WebGLPrograms = function ( renderer, capabilities ) {
 			programs[ i ] = programs[ programs.length - 1 ];
 			programs.pop();
 
-			// Free WebGL resources
+			// Free WebGL libs
 			program.destroy();
 
 		}
