@@ -92,11 +92,12 @@ function createScene()
 		{
 		  color: 0xFF4045
 		});
-	// create the plane's material	
+	// create the plane's material
 	var planeMaterial =
 	  new THREE.MeshLambertMaterial(
 		{
-		  color: 0x4BD121
+			map: THREE.ImageUtils.loadTexture( "textures/tennis-court.jpg" ),
+		  	color: 0x777777
 		});
 	// create the table's material
 	var tableMaterial =
