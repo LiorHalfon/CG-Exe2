@@ -4,7 +4,7 @@
 var renderer, scene, camera, pointLight, spotLight;
 
 // field variables
-var fieldWidth = 400, fieldHeight = 200;
+var fieldWidth = 400, fieldHeight = 200, fieldDepth = 50;
 
 // paddle variables
 var paddleWidth, paddleHeight, paddleDepth, paddleQuality;
@@ -13,8 +13,10 @@ var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
 // ball variables
 var ball, paddle1, paddle2;
-var ballDirX = 1, ballDirY = 0.2, ballSpeed = 6;
+var ballDirX = 1, ballDirY = 0.2, ballDirZ = -0.01; ballSpeed = 6;
 var TO_OPPONENT = 1;
+var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
+var ballRadius = 5;
 
 // game-related variables
 var score1 = 0, score2 = 0;
@@ -22,7 +24,7 @@ var score1 = 0, score2 = 0;
 var maxScore = 7;
 
 // set opponent reflexes (1 - easiest, 10 - hardest)
-var difficulty = 3;
+var difficulty = 6;
 ////////////////////////////////////////////////////////////////////
 
 function setup()
@@ -152,7 +154,7 @@ function createScene()
 		
 	// // set up the sphere vars
 	// lower 'segment' and 'ring' values will increase performance
-	var radius = 5,
+	var radius = ballRadius,
 		segments = 6,
 		rings = 6;
 		
@@ -179,7 +181,7 @@ function createScene()
 	ball.position.x = 0;
 	ball.position.y = 0;
 	// set ball above the table surface
-	ball.position.z = radius;
+	ball.position.z = radius + 20;
 	ball.receiveShadow = true;
     ball.castShadow = true;
 	
@@ -339,54 +341,39 @@ function ballPhysics()
 {
 	// if ball goes off the 'left' side (Player's side)
 	if (ball.position.x <= -fieldWidth/2)
-	{	
-		// CPU scores
-		score2++;
-		// update scoreboard HTML
-		document.getElementById("scores").innerHTML = score1 + "-" + score2;
-		// reset ball to center
-		resetBall(2);
-		matchScoreCheck();	
+	{
+		cpuScores();
 	}
 	
 	// if ball goes off the 'right' side (CPU's side)
 	if (ball.position.x >= fieldWidth/2)
-	{	
-		// Player scores
-		score1++;
-		// update scoreboard HTML
-		document.getElementById("scores").innerHTML = score1 + "-" + score2;
-		// reset ball to center
-		resetBall(1);
-		matchScoreCheck();	
-	}
-	
-	// if ball goes off the top side (side of table)
-	if (ball.position.y <= -fieldHeight/2)
 	{
-		ballDirY = -ballDirY;
-	}	
-	// if ball goes off the bottom side (side of table)
-	if (ball.position.y >= fieldHeight/2)
-	{
-		ballDirY = -ballDirY;
+		playerScores();
 	}
-	
+
+	// handle ball bounce
+	if (ball.position.z  - ballRadius <= 0){
+		if (ball.position.y > fieldHeight/2 || ball.position.y < -fieldHeight/2)
+		{
+			if(ballDirX == TO_OPPONENT){
+				cpuScores();
+			}
+			else{
+				playerScores();
+			}
+		}
+
+		ballDirZ = ballZSpeed;
+
+	}else if(ball.position.z + ballRadius >= BALL_MAX_HEIGHT) {
+		ballDirZ = -ballZSpeed;
+	}
+
 	// update ball position over time
 	ball.position.x += ballDirX * ballSpeed;
 	ball.position.y += ballDirY * ballSpeed;
-	
-	// limit ball's y-speed to 2x the x-speed
-	// this is so the ball doesn't speed from left to right super fast
-	// keeps game playable for humans
-	if (ballDirY > ballSpeed * 2)
-	{
-		ballDirY = ballSpeed * 2;
-	}
-	else if (ballDirY < -ballSpeed * 2)
-	{
-		ballDirY = -ballSpeed * 2;
-	}
+	ball.position.z += ballDirZ * ballSpeed;
+
 }
 
 // Handles CPU paddle movement and logic
@@ -405,28 +392,7 @@ function opponentPaddleMovement()
 	}
 
 	paddle2.position.y += paddle2DirY;
-	//if (Math.abs(paddle2DirY) <= ballDirY)
-	//{
-	//	paddle2.position.y += paddle2DirY;
-	//}
-	//else
-	//{
-	//	paddle2.position.y += ballDirY;
-	//	// if paddle is lerping in +ve direction
-	//	if (paddle2DirY > paddleSpeed)
-	//	{
-	//		paddle2.position.y += paddleSpeed;
-	//	}
-	//	// if paddle is lerping in -ve direction
-	//	else if (paddle2DirY < -paddleSpeed)
-	//	{
-	//		paddle2.position.y -= paddleSpeed;
-	//	}
-	//}
-	// We lerp the scale back to 1
-	// this is done because we stretch the paddle at some points
-	// stretching is done when paddle touches side of table and when paddle hits ball
-	// by doing this here, we ensure paddle always comes back to default size
+
 	paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;	
 }
 
@@ -528,13 +494,12 @@ function paddlePhysics()
 			// and if ball is travelling towards player (-ve direction)
 			if (ballDirX < 0)
 			{
-				// stretch the paddle to indicate a hit
-				paddle1.scale.y = 15;
+				ball.position.z = BALL_MAX_HEIGHT;
+				ballDirZ = -ballZSpeed;
+
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
-				// we impact ball angle when hitting it
-				// this is not realistic physics, just spices up the gameplay
-				// allows you to 'slice' the ball to beat the opponent
+
 				if (isSpacePressed){
 					// close corner
 					ballDirY = Math.sign(paddle1.position.y)*( fieldHeight/2 - Math.abs(paddle1.position.y)) / fieldWidth;
@@ -549,9 +514,8 @@ function paddlePhysics()
 	}
 	
 	// OPPONENT PADDLE LOGIC	
-	
+
 	// if ball is aligned with paddle2 on x plane
-	// remember the position is the CENTER of the object
 	// we only check between the front and the middle of the paddle (one-way collision)
 	if (ball.position.x <= paddle2.position.x + paddleWidth
 	&&  ball.position.x >= paddle2.position.x)
@@ -560,16 +524,14 @@ function paddlePhysics()
 		if (ball.position.y <= paddle2.position.y + paddleHeight/2
 		&&  ball.position.y >= paddle2.position.y - paddleHeight/2)
 		{
-			// and if ball is travelling towards opponent (+ve direction)
-			if (ballDirX > 0)
+			if (ballDirX == TO_OPPONENT)
 			{
-				// stretch the paddle to indicate a hit
-				paddle2.scale.y = 15;	
+				ball.position.z = BALL_MAX_HEIGHT;
+				ballDirZ = -ballZSpeed;
+
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
-				// we impact ball angle when hitting it
-				// this is not realistic physics, just spices up the gameplay
-				// allows you to 'slice' the ball to beat the opponent
+
 				if (Math.round(Math.random()*100) % 2 == 0){
 					//close corner
 					ballDirY = Math.sign(paddle2.position.y)*( fieldHeight/2 - Math.abs(paddle2.position.y)) / fieldWidth;
@@ -633,4 +595,24 @@ function matchScoreCheck()
 		paddle2.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
 		paddle2.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
 	}
+}
+
+function cpuScores() {
+// CPU scores
+	score2++;
+	// update scoreboard HTML
+	document.getElementById("scores").innerHTML = score1 + "-" + score2;
+	// reset ball to center
+	resetBall(2);
+	matchScoreCheck();
+}
+
+function playerScores() {
+// Player scores
+	score1++;
+	// update scoreboard HTML
+	document.getElementById("scores").innerHTML = score1 + "-" + score2;
+	// reset ball to center
+	resetBall(1);
+	matchScoreCheck();
 }
