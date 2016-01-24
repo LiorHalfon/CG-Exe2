@@ -8,19 +8,21 @@ var fieldWidth = 400, fieldHeight = 200;
 
 // paddle variables
 var paddleWidth, paddleHeight, paddleDepth, paddleQuality;
-var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 3;
+var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5;
+var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
 // ball variables
 var ball, paddle1, paddle2;
-var ballDirX = 1, ballDirY = 1, ballSpeed = 2;
+var ballDirX = 1, ballDirY = 0.2, ballSpeed = 6;
+var TO_OPPONENT = 1;
 
 // game-related variables
 var score1 = 0, score2 = 0;
 // you can change this to any positive whole number
 var maxScore = 7;
 
-// set opponent reflexes (0 - easiest, 1 - hardest)
-var difficulty = 0.2;
+// set opponent reflexes (1 - easiest, 10 - hardest)
+var difficulty = 3;
 ////////////////////////////////////////////////////////////////////
 
 function setup()
@@ -390,28 +392,37 @@ function ballPhysics()
 // Handles CPU paddle movement and logic
 function opponentPaddleMovement()
 {
+	if (ballDirX == TO_OPPONENT){
 	// Lerp towards the ball on the y plane
-	paddle2DirY = (ball.position.y - paddle2.position.y) * difficulty;
-	
-	// in case the Lerp function produces a value above max paddle speed, we clamp it
-	if (Math.abs(paddle2DirY) <= paddleSpeed)
-	{	
-		paddle2.position.y += paddle2DirY;
+		paddle2DirY = Math.sign(ball.position.y - paddle2.position.y) * paddleSpeed/10 * difficulty;
 	}
-	// if the lerp value is too high, we have to limit speed to paddleSpeed
-	else
-	{
-		// if paddle is lerping in +ve direction
-		if (paddle2DirY > paddleSpeed)
-		{
-			paddle2.position.y += paddleSpeed;
-		}
-		// if paddle is lerping in -ve direction
-		else if (paddle2DirY < -paddleSpeed)
-		{
-			paddle2.position.y -= paddleSpeed;
-		}
+	else{
+		paddle2DirY = 0;
 	}
+
+	if(Math.abs(ball.position.y - paddle2.position.y) <= Math.abs(paddle2DirY)) {
+		paddle2DirY = (ball.position.y - paddle2.position.y);
+	}
+
+	paddle2.position.y += paddle2DirY;
+	//if (Math.abs(paddle2DirY) <= ballDirY)
+	//{
+	//	paddle2.position.y += paddle2DirY;
+	//}
+	//else
+	//{
+	//	paddle2.position.y += ballDirY;
+	//	// if paddle is lerping in +ve direction
+	//	if (paddle2DirY > paddleSpeed)
+	//	{
+	//		paddle2.position.y += paddleSpeed;
+	//	}
+	//	// if paddle is lerping in -ve direction
+	//	else if (paddle2DirY < -paddleSpeed)
+	//	{
+	//		paddle2.position.y -= paddleSpeed;
+	//	}
+	//}
 	// We lerp the scale back to 1
 	// this is done because we stretch the paddle at some points
 	// stretching is done when paddle touches side of table and when paddle hits ball
@@ -428,7 +439,7 @@ function playerPaddleMovement()
 	{
 		// if paddle is not touching the side of table
 		// we move
-		if (paddle1.position.y < fieldHeight * 0.45)
+		if (paddle1.position.y < fieldHeight * 0.6)
 		{
 			paddle1DirY = paddleSpeed * 0.5;
 		}
@@ -445,7 +456,7 @@ function playerPaddleMovement()
 	{
 		// if paddle is not touching the side of table
 		// we move
-		if (paddle1.position.y > -fieldHeight * 0.45)
+		if (paddle1.position.y > -fieldHeight * 0.6)
 		{
 			paddle1DirY = -paddleSpeed * 0.5;
 		}
@@ -462,6 +473,18 @@ function playerPaddleMovement()
 	{
 		// stop the paddle
 		paddle1DirY = 0;
+	}
+
+	if(Key.isDown(Key.SPACE) && !isSpacePressed){
+		isSpacePressed = true;
+		spaceKeyTimer = INITIAL_SPACE_KEY_TIME;
+	}
+
+	if(isSpacePressed){
+		paddle1.scale.z = 5;
+		spaceKeyTimer-=16;
+		if (spaceKeyTimer <= 0)
+			isSpacePressed = false;
 	}
 	
 	paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;	
@@ -512,7 +535,15 @@ function paddlePhysics()
 				// we impact ball angle when hitting it
 				// this is not realistic physics, just spices up the gameplay
 				// allows you to 'slice' the ball to beat the opponent
-				ballDirY -= paddle1DirY * 0.7;
+				if (isSpacePressed){
+					// close corner
+					ballDirY = Math.sign(paddle1.position.y)*( fieldHeight/2 - Math.abs(paddle1.position.y)) / fieldWidth;
+					//far corner
+					ballDirY = -Math.sign(paddle1.position.y)*(Math.abs(paddle1.position.y) + fieldHeight/2) / fieldWidth;
+				}
+				else{
+					ballDirY = paddle1DirY * 0.1;
+				}
 			}
 		}
 	}
@@ -539,7 +570,14 @@ function paddlePhysics()
 				// we impact ball angle when hitting it
 				// this is not realistic physics, just spices up the gameplay
 				// allows you to 'slice' the ball to beat the opponent
-				ballDirY -= paddle2DirY * 0.7;
+				if (Math.round(Math.random()*100) % 2 == 0){
+					//close corner
+					ballDirY = Math.sign(paddle2.position.y)*( fieldHeight/2 - Math.abs(paddle2.position.y)) / fieldWidth;
+				}
+				else{
+					//far corner
+					ballDirY = -Math.sign(paddle2.position.y)*(Math.abs(paddle2.position.y) +fieldHeight/2) / fieldWidth;
+				}
 			}
 		}
 	}
@@ -563,7 +601,7 @@ function resetBall(loser)
 	}
 	
 	// set the ball to move +ve in y plane (towards left from the camera)
-	ballDirY = 1;
+	ballDirY = 0;
 }
 
 var bounceTime = 0;
