@@ -45,7 +45,7 @@ function createScene()
 {
 	// set the scene size
 	var WIDTH = window.innerWidth - 10,
-	  HEIGHT = 470;
+	  HEIGHT = 520;
 
 	// set some camera attributes
 	var VIEW_ANGLE = 50,
@@ -231,8 +231,8 @@ function createScene()
 	paddle2.position.x = fieldWidth/2 - paddleWidth;
 	
 	// lift paddles over playing surface
-	paddle1.position.z = paddleDepth;
-	paddle2.position.z = paddleDepth;
+	paddle1.position.z = 30;
+	paddle2.position.z = 30;
 		
 	// we iterate 10x (5x each side) to create pillars to show off shadows
 	// this is for the pillars on the left
@@ -574,7 +574,6 @@ function resetBall(loser)
 	ballDirY = 0;
 }
 
-var bounceTime = 0;
 function matchScoreCheck()
 {
 	if (score1 >= maxScore)
@@ -583,12 +582,6 @@ function matchScoreCheck()
 		ballSpeed = 0;
 		// write to the banner
 		document.getElementById("scores").innerHTML = "Player wins!";
-		// make paddle bounce up and down
-		bounceTime++;
-		paddle1.position.z = Math.sin(bounceTime * 0.1) * 10;
-		// enlarge and squish paddle to emulate joy
-		paddle1.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
-		paddle1.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
 	}
 	else if (score2 >= maxScore)
 	{
@@ -596,12 +589,6 @@ function matchScoreCheck()
 		ballSpeed = 0;
 		// write to the banner
 		document.getElementById("scores").innerHTML = "CPU wins!";
-		// make paddle bounce up and down
-		bounceTime++;
-		paddle2.position.z = Math.sin(bounceTime * 0.1) * 10;
-		// enlarge and squish paddle to emulate joy
-		paddle2.scale.z = 2 + Math.abs(Math.sin(bounceTime * 0.1)) * 10;
-		paddle2.scale.y = 2 + Math.abs(Math.sin(bounceTime * 0.05)) * 10;
 	}
 }
 
