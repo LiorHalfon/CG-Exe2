@@ -13,18 +13,19 @@ var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
 // ball variables
 var ball, paddle1, paddle2;
-var ballDirX = 1, ballDirY = 0.2, ballDirZ = -0.01; ballSpeed = 6;
+var ballDirX = 1, ballDirY = 0.2, ballDirZ = -0.01; ballSpeed = 5;
 var TO_OPPONENT = 1;
 var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 5;
+var GAME_START_TIME=1000, startTimer= GAME_START_TIME;
 
 // game-related variables
 var score1 = 0, score2 = 0;
 // you can change this to any positive whole number
 var maxScore = 7;
 
-// set opponent reflexes (1 - easiest, 10 - hardest)
-var difficulty = 6;
+// set opponent reflexes (1 - easiest, 5 - hardest)
+var difficulty = 3.5;
 ////////////////////////////////////////////////////////////////////
 
 function setup()
@@ -339,6 +340,11 @@ function draw()
 
 function ballPhysics()
 {
+	if (startTimer > 0){
+		startTimer-=18;
+		return;
+	}
+
 	// if ball goes off the 'left' side (Player's side)
 	if (ball.position.x <= -fieldWidth/2)
 	{
@@ -363,7 +369,7 @@ function ballPhysics()
 			}
 		}
 
-		ballDirZ = ballZSpeed;
+		ballDirZ = ballZSpeed*2;
 
 	}else if(ball.position.z + ballRadius >= BALL_MAX_HEIGHT) {
 		ballDirZ = -ballZSpeed;
@@ -502,9 +508,9 @@ function paddlePhysics()
 
 				if (isSpacePressed){
 					// close corner
-					ballDirY = Math.sign(paddle1.position.y)*( fieldHeight/2 - Math.abs(paddle1.position.y)) / fieldWidth;
+					ballDirY = Math.sign(paddle1.position.y+0.01)*( fieldHeight/2 - Math.abs(paddle1.position.y)) / fieldWidth;
 					//far corner
-					ballDirY = -Math.sign(paddle1.position.y)*(Math.abs(paddle1.position.y) + fieldHeight/2) / fieldWidth;
+					ballDirY = -Math.sign(paddle1.position.y+0.01)*(Math.abs(paddle1.position.y) + fieldHeight/2) / fieldWidth;
 				}
 				else{
 					ballDirY = paddle1DirY * 0.1;
@@ -534,11 +540,11 @@ function paddlePhysics()
 
 				if (Math.round(Math.random()*100) % 2 == 0){
 					//close corner
-					ballDirY = Math.sign(paddle2.position.y)*( fieldHeight/2 - Math.abs(paddle2.position.y)) / fieldWidth;
+					ballDirY = Math.sign(paddle2.position.y+0.01)*( fieldHeight/2 - Math.abs(paddle2.position.y)-5) / fieldWidth;
 				}
 				else{
 					//far corner
-					ballDirY = -Math.sign(paddle2.position.y)*(Math.abs(paddle2.position.y) +fieldHeight/2) / fieldWidth;
+					ballDirY = -Math.sign(paddle2.position.y+0.01)*(Math.abs(paddle2.position.y) +fieldHeight/2 - 5) / fieldWidth;
 				}
 			}
 		}
@@ -550,6 +556,8 @@ function resetBall(loser)
 	// position the ball in the center of the table
 	ball.position.x = 0;
 	ball.position.y = 0;
+
+	startTimer = GAME_START_TIME;
 	
 	// if player lost the last point, we send the ball to opponent
 	if (loser == 1)
