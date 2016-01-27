@@ -13,7 +13,7 @@ var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
 // ball variables
 var ball, paddle1, paddle2;
-var ballDirX = 1, ballDirY = 0.2, ballDirZ = -0.01; ballSpeed = 5;
+var ballDirX = 1, ballDirY = 0.2, ballDirZ = -0.01; ballSpeed = 6;
 var TO_OPPONENT = 1;
 var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 5;
@@ -27,7 +27,7 @@ var score1 = 0, score2 = 0;
 var maxScore = 7;
 
 // set opponent reflexes (1 - easiest, 5 - hardest)
-var difficulty = 3;
+var difficulty = 4;
 ////////////////////////////////////////////////////////////////////
 
 function setup()
@@ -78,6 +78,7 @@ function createScene()
 	
 	// start the renderer
 	renderer.setSize(WIDTH, HEIGHT);
+	renderer.setClearColor( 0x87CEEB );
 
 	// attach the render-supplied DOM element
 	c.appendChild(renderer.domElement);
@@ -103,26 +104,36 @@ function createScene()
 	var planeMaterial =
 	  new THREE.MeshLambertMaterial(
 		{
-			map: THREE.ImageUtils.loadTexture( "textures/tennis-court.jpg" ),
+			map: THREE.ImageUtils.loadTexture( "textures/blueTable.jpg" ),
 		  	color: 0x777777
 		});
-	// create the table's material
-	var tableMaterial =
+	// create the bottomTable's material
+	var bottomTableMaterial =
 	  new THREE.MeshLambertMaterial(
 		{
 		  color: 0x111111
 		});
 	// create the pillar's material
+	var pillerTexture = THREE.ImageUtils.loadTexture( "textures/pillar_texture.jpg" );
+	pillerTexture.wrapS = THREE.RepeatWrapping;
+	pillerTexture.wrapT = THREE.RepeatWrapping;
+	pillerTexture.repeat.set( 4, 1 );
 	var pillarMaterial =
 	  new THREE.MeshLambertMaterial(
 		{
-		  color: 0x534d0d
+		  map: pillerTexture,
+		  color: 0xaaaaaa
 		});
 	// create the ground's material
+	var grassTexture = THREE.ImageUtils.loadTexture( "textures/grass_texture.jpg" );
+	grassTexture.wrapS = THREE.RepeatWrapping;
+	grassTexture.wrapT = THREE.RepeatWrapping;
+	grassTexture.repeat.set( 16, 16 );
 	var groundMaterial =
 	  new THREE.MeshLambertMaterial(
 		{
-		  color: 0x888888
+			map: grassTexture,
+		  color: 0xcccccc
 		});
 		
 		
@@ -130,7 +141,7 @@ function createScene()
 	var plane = new THREE.Mesh(
 
 	  new THREE.PlaneGeometry(
-		planeWidth * 0.95,	// 95% of table width, since we want to show where the ball goes out-of-bounds
+		planeWidth,
 		planeHeight,
 		planeQuality,
 		planeQuality),
@@ -140,20 +151,20 @@ function createScene()
 	scene.add(plane);
 	plane.receiveShadow = true;	
 	
-	var table = new THREE.Mesh(
+	var bottomTable = new THREE.Mesh(
 
 	  new THREE.CubeGeometry(
-		planeWidth * 1.05,	// this creates the feel of a billiards table, with a lining
-		planeHeight * 1.03,
+		planeWidth,
+		planeHeight,
 		100,				// an arbitrary depth, the camera can't see much of it anyway
 		planeQuality,
 		planeQuality,
 		1),
 
-	  tableMaterial);
-	table.position.z = -51;	// we sink the table into the ground by 50 units. The extra 1 is so the plane can be seen
-	scene.add(table);
-	table.receiveShadow = true;	
+	  bottomTableMaterial);
+	bottomTable.position.z = -51;	// we sink the bottomTable into the ground by 50 units. The extra 1 is so the plane can be seen
+	scene.add(bottomTable);
+	bottomTable.receiveShadow = true;
 		
 	// // set up the sphere vars
 	// lower 'segment' and 'ring' values will increase performance
@@ -183,7 +194,7 @@ function createScene()
 	
 	ball.position.x = 0;
 	ball.position.y = 0;
-	// set ball above the table surface
+	// set ball above the bottomTable surface
 	ball.position.z = radius + 20;
 	ball.receiveShadow = true;
     ball.castShadow = true;
@@ -192,9 +203,9 @@ function createScene()
 	paddleWidth = 10;
 	paddleHeight = 30;
 	paddleDepth = 10;
-	paddleQuality = 1;
+	paddleQuality = 10;
 
-	var batGeometry = new THREE.CubeGeometry(
+	var paddleGeometry = new THREE.CubeGeometry(
 			paddleWidth,
 			paddleHeight,
 			paddleDepth,
@@ -202,7 +213,7 @@ function createScene()
 			paddleQuality,
 			paddleQuality);
 		
-	paddle1 = new THREE.Mesh(batGeometry, paddle1Material);
+	paddle1 = new THREE.Mesh(paddleGeometry, paddle1Material);
 
 	// // add the sphere to the scene
 	scene.add(paddle1);
@@ -226,7 +237,7 @@ function createScene()
 	paddle2.receiveShadow = true;
     paddle2.castShadow = true;	
 	
-	// set paddles on each side of the table
+	// set paddles on each side of the Table
 	paddle1.position.x = -fieldWidth/2 + paddleWidth;
 	paddle2.position.x = fieldWidth/2 - paddleWidth;
 	
@@ -243,10 +254,10 @@ function createScene()
 		  new THREE.CubeGeometry( 
 		  30, 
 		  30, 
-		  300, 
-		  1, 
-		  1,
-		  1 ),
+		  300,
+				  10,
+			10,
+			10 ),
 
 		  pillarMaterial);
 		  
@@ -266,10 +277,10 @@ function createScene()
 		  new THREE.CubeGeometry( 
 		  30, 
 		  30, 
-		  300, 
-		  1, 
-		  1,
-		  1 ),
+		  300,
+		  10,
+		  10,
+		  10 ),
 
 		  pillarMaterial);
 		  
@@ -285,8 +296,8 @@ function createScene()
 	var ground = new THREE.Mesh(
 
 	  new THREE.CubeGeometry( 
-	  1000, 
-	  1000, 
+	  4000,
+	  4000,
 	  3, 
 	  1, 
 	  1,
@@ -408,7 +419,7 @@ function playerPaddleMovement()
 	// move left
 	if (Key.isDown(Key.A))		
 	{
-		// if paddle is not touching the side of table
+		// if paddle is not touching the boundary
 		// we move
 		if (paddle1.position.y < fieldHeight * 0.6)
 		{
@@ -425,14 +436,10 @@ function playerPaddleMovement()
 	// move right
 	else if (Key.isDown(Key.D))
 	{
-		// if paddle is not touching the side of table
-		// we move
 		if (paddle1.position.y > -fieldHeight * 0.6)
 		{
 			paddle1DirY = -paddleSpeed * 0.5;
 		}
-		// else we don't move and stretch the paddle
-		// to indicate we can't move
 		else
 		{
 			paddle1DirY = 0;
@@ -471,7 +478,7 @@ function cameraPhysics()
 	spotLight.position.y = ball.position.y * 2;
 	
 	// move to behind the player's paddle
-	camera.position.x = paddle1.position.x - 100;
+	camera.position.x = paddle1.position.x - 120;
 	camera.position.y += (paddle1.position.y - camera.position.y) * 0.05;
 	camera.position.z = paddle1.position.z + 100 + 0.04 * (-ball.position.x + paddle1.position.x);
 	
