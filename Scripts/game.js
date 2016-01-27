@@ -25,7 +25,7 @@ var score1 = 0, score2 = 0;
 var maxScore = 7;
 
 // set opponent reflexes (1 - easiest, 5 - hardest)
-var difficulty = 3.5;
+var difficulty = 4.5;
 ////////////////////////////////////////////////////////////////////
 
 function setup()
@@ -191,18 +191,16 @@ function createScene()
 	paddleHeight = 30;
 	paddleDepth = 10;
 	paddleQuality = 1;
+
+	var batGeometry = new THREE.CubeGeometry(
+			paddleWidth,
+			paddleHeight,
+			paddleDepth,
+			paddleQuality,
+			paddleQuality,
+			paddleQuality);
 		
-	paddle1 = new THREE.Mesh(
-
-	  new THREE.CubeGeometry(
-		paddleWidth,
-		paddleHeight,
-		paddleDepth,
-		paddleQuality,
-		paddleQuality,
-		paddleQuality),
-
-	  paddle1Material);
+	paddle1 = new THREE.Mesh(batGeometry, paddle1Material);
 
 	// // add the sphere to the scene
 	scene.add(paddle1);
@@ -282,7 +280,6 @@ function createScene()
 	}
 	
 	// finally we finish by adding a ground plane
-	// to show off pretty shadows
 	var ground = new THREE.Mesh(
 
 	  new THREE.CubeGeometry( 
@@ -313,15 +310,13 @@ function createScene()
 	scene.add(pointLight);
 		
 	// add a spot light
-	// this is important for casting shadows
     spotLight = new THREE.SpotLight(0xF8D898);
     spotLight.position.set(0, 0, 460);
     spotLight.intensity = 1.5;
     spotLight.castShadow = true;
     scene.add(spotLight);
-	
-	// MAGIC SHADOW CREATOR DELUXE EDITION with Lights PackTM DLC
-	renderer.shadowMapEnabled = true;		
+
+	renderer.shadowMapEnabled = true;
 }
 
 function draw()
@@ -341,7 +336,7 @@ function draw()
 function ballPhysics()
 {
 	if (startTimer > 0){
-		startTimer-=18;
+		startTimer-=18; // frame time
 		return;
 	}
 
@@ -538,13 +533,15 @@ function paddlePhysics()
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
 
+				var offset = 5 + Math.random()*100;
+
 				if (Math.round(Math.random()*100) % 2 == 0){
 					//close corner
-					ballDirY = Math.sign(paddle2.position.y+0.01)*( fieldHeight/2 - Math.abs(paddle2.position.y)-5) / fieldWidth;
+					ballDirY =  Math.sign(paddle2.position.y+0.01)*(fieldHeight/2 - Math.abs(paddle2.position.y) - offset) / fieldWidth;
 				}
 				else{
 					//far corner
-					ballDirY = -Math.sign(paddle2.position.y+0.01)*(Math.abs(paddle2.position.y) +fieldHeight/2 - 5) / fieldWidth;
+					ballDirY = -Math.sign(paddle2.position.y+0.01)*(fieldHeight/2 + Math.abs(paddle2.position.y) - offset) / fieldWidth;
 				}
 			}
 		}
