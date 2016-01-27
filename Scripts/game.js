@@ -18,6 +18,8 @@ var TO_OPPONENT = 1;
 var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 5;
 var GAME_START_TIME=1000, startTimer= GAME_START_TIME;
+// ball physics variables
+var ballCoefficientTable = [20, -0.2844877345, 0.0004389129 , 0.0000080568];
 
 // game-related variables
 var score1 = 0, score2 = 0;
@@ -25,7 +27,7 @@ var score1 = 0, score2 = 0;
 var maxScore = 7;
 
 // set opponent reflexes (1 - easiest, 5 - hardest)
-var difficulty = 4.5;
+var difficulty = 3;
 ////////////////////////////////////////////////////////////////////
 
 function setup()
@@ -333,48 +335,50 @@ function draw()
 	opponentPaddleMovement();
 }
 
-function ballPhysics()
-{
-	if (startTimer > 0){
-		startTimer-=18; // frame time
+function ballPhysics() {
+	if (startTimer > 0) {
+		startTimer -= 18; // frame time
 		return;
 	}
 
 	// if ball goes off the 'left' side (Player's side)
-	if (ball.position.x <= -fieldWidth/2)
-	{
+	if (ball.position.x <= -fieldWidth / 2) {
 		cpuScores();
 	}
-	
+
 	// if ball goes off the 'right' side (CPU's side)
-	if (ball.position.x >= fieldWidth/2)
-	{
+	if (ball.position.x >= fieldWidth / 2) {
 		playerScores();
-	}
-
-	// handle ball bounce
-	if (ball.position.z  - ballRadius <= 0){
-		if (ball.position.y > fieldHeight/2 || ball.position.y < -fieldHeight/2)
-		{
-			if(ballDirX == TO_OPPONENT){
-				cpuScores();
-			}
-			else{
-				playerScores();
-			}
-		}
-
-		ballDirZ = ballZSpeed*2;
-
-	}else if(ball.position.z + ballRadius >= BALL_MAX_HEIGHT) {
-		ballDirZ = -ballZSpeed;
 	}
 
 	// update ball position over time
 	ball.position.x += ballDirX * ballSpeed;
 	ball.position.y += ballDirY * ballSpeed;
-	ball.position.z += ballDirZ * ballSpeed;
 
+
+	var ballZpos = 0, xPos;
+	if (ballDirX == TO_OPPONENT)
+		xPos = ball.position.x;
+	else
+		xPos = -ball.position.x;
+
+	ballZpos += ballCoefficientTable[0];
+	ballZpos += ballCoefficientTable[1] * xPos;
+	ballZpos += ballCoefficientTable[2] * Math.pow(xPos, 2);
+	ballZpos += ballCoefficientTable[3] * Math.pow(xPos, 3);
+
+	ball.position.z = ballZpos;
+
+	if (ball.position.z - ballRadius <= 0) {
+		if (ball.position.y > fieldHeight / 2 || ball.position.y < -fieldHeight / 2) {
+			if (ballDirX == TO_OPPONENT) {
+				cpuScores();
+			}
+			else {
+				playerScores();
+			}
+		}
+	}
 }
 
 // Handles CPU paddle movement and logic
@@ -495,9 +499,6 @@ function paddlePhysics()
 			// and if ball is travelling towards player (-ve direction)
 			if (ballDirX < 0)
 			{
-				ball.position.z = BALL_MAX_HEIGHT;
-				ballDirZ = -ballZSpeed;
-
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
 
@@ -527,9 +528,6 @@ function paddlePhysics()
 		{
 			if (ballDirX == TO_OPPONENT)
 			{
-				ball.position.z = BALL_MAX_HEIGHT;
-				ballDirZ = -ballZSpeed;
-
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
 
