@@ -7,7 +7,7 @@ var fieldWidth = 400, fieldHeight = 200, fieldDepth = 50;
 
 // paddle variables
 var paddleWidth, paddleHeight, paddleDepth, paddleQuality;
-var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5;
+var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5, paddleMaxSpeed = 8;
 var hitStr = 4;
 var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
@@ -406,10 +406,10 @@ function playerPaddleMovement() {
         // if paddle is not touching the boundary
         // we move
         if (paddle1.position.y < fieldHeight) {
-            if (paddle1DirY < 0) {
+            if (paddle1DirY <= 0) {
                 paddle1DirY = paddleSpeed * 0.5;
-            } else {
-                paddle1DirY *= 1.1;
+            } else if (Math.abs(paddle1DirY) < paddleMaxSpeed){
+                paddle1DirY *= 1.05;
             }
         }
         // else we don't move and stretch the paddle
@@ -422,11 +422,11 @@ function playerPaddleMovement() {
     // move right
     else if (Key.isDown(Key.D)) {
         if (paddle1.position.y > -fieldHeight) {
-            if (paddle1DirY > 0) {
+            if (paddle1DirY >= 0) {
                 paddle1DirY = -paddleSpeed * 0.5;
             }
-            else {
-                paddle1DirY *= 1.1;
+            else if (Math.abs(paddle1DirY) < paddleMaxSpeed) {
+                paddle1DirY *= 1.05;
             }
         }
         else {
@@ -537,7 +537,7 @@ function paddlePhysics() {
                     ballDirY = -Math.sign(paddle2.position.y + 0.01) * (fieldHeight / 2 + Math.abs(paddle2.position.y)) / fieldWidth;
                 }
 
-                ballDirY *= (Math.random() * 8);
+                ballDirY *= (Math.random() * 6);
             }
         }
     }
