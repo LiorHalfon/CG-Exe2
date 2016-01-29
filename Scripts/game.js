@@ -9,20 +9,21 @@ var fieldWidth = 400, fieldHeight = 200, fieldDepth = 50;
 // paddle variables
 var paddleWidth, paddleHeight, paddleDepth, paddleQuality;
 var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5;
+var hitStr = 4;
 var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
 // ball variables
 var ball, paddle1, paddle2;
-var ballDirX = 1, ballDirY = 0.2, ballDirZ = -0.01; ballSpeed = 6;
-var TO_OPPONENT = 1;
+var ballInitX = 3, ballInitY = 0.2, ballInitZ = 1.5;
+var ballDirX = ballInitX, ballDirY = ballInitY, ballDirZ = ballInitZ, ballSpeed = 1;
 var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 5;
 var GAME_START_TIME=1000, startTimer= GAME_START_TIME;
 // ball physics variables
-var ballCoefficientTable = [20, -0.2844877345, 0.0004389129 , 0.0000080568];
+var gravity = 0.1, ballInactive = false;
 
 // game-related variables
-var score1 = 0, score2 = 0;
+var score1 = 0, score2 = 0, gameOver = false;
 // you can change this to any positive whole number
 var maxScore = 7;
 
@@ -107,12 +108,7 @@ function createScene()
 			map: THREE.ImageUtils.loadTexture( "textures/blueTable.jpg" ),
 		  	color: 0x777777
 		});
-	// create the bottomTable's material
-	var bottomTableMaterial =
-	  new THREE.MeshLambertMaterial(
-		{
-		  color: 0x111111
-		});
+
 	// create the pillar's material
 	var pillerTexture = THREE.ImageUtils.loadTexture( "textures/pillar_texture.jpg" );
 	pillerTexture.wrapS = THREE.RepeatWrapping;
@@ -149,22 +145,15 @@ function createScene()
 	  planeMaterial);
 	  
 	scene.add(plane);
-	plane.receiveShadow = true;	
-	
-	var bottomTable = new THREE.Mesh(
+	plane.receiveShadow = true;
 
-	  new THREE.CubeGeometry(
-		planeWidth,
-		planeHeight,
-		100,				// an arbitrary depth, the camera can't see much of it anyway
-		planeQuality,
-		planeQuality,
-		1),
-
-	  bottomTableMaterial);
-	bottomTable.position.z = -51;	// we sink the bottomTable into the ground by 50 units. The extra 1 is so the plane can be seen
-	scene.add(bottomTable);
-	bottomTable.receiveShadow = true;
+	var shadowMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff,
+		map:THREE.ImageUtils.loadTexture( "textures/shadow.png"),
+		transparent: true} );
+	var shadowPlane = new THREE.PlaneGeometry(fieldWidth * 2 , fieldHeight * 2);
+	var shadow = new THREE.Mesh( shadowPlane, shadowMaterial );
+	shadow.depthTest = false;
+	scene.add(shadow);
 		
 	// // set up the sphere vars
 	// lower 'segment' and 'ring' values will increase performance
@@ -189,12 +178,12 @@ function createScene()
 
 	  sphereMaterial);
 
-	// // add the sphere to the scene
+	// add the sphere to the scene
 	scene.add(ball);
 	
 	ball.position.x = 0;
 	ball.position.y = 0;
-	// set ball above the bottomTable surface
+	// set ball above the table surface
 	ball.position.z = radius + 20;
 	ball.receiveShadow = true;
     ball.castShadow = true;
@@ -307,7 +296,9 @@ function createScene()
     // set ground to arbitrary z position to best show off shadowing
 	ground.position.z = -132;
 	ground.receiveShadow = true;	
-	scene.add(ground);		
+	scene.add(ground);
+
+	shadow.position.set(0,0,ground.position.z +20);
 		
 	// // create a point light
 	pointLight =
@@ -347,10 +338,13 @@ function draw()
 }
 
 function ballPhysics() {
-	if (startTimer > 0) {
+	//delay in the beginning
+	if (startTimer > 0 || gameOver === true) {
 		startTimer -= 18; // frame time
 		return;
 	}
+
+	ballDirZ -= gravity;
 
 	// if ball goes off the 'left' side (Player's side)
 	if (ball.position.x <= -fieldWidth / 2) {
@@ -362,40 +356,43 @@ function ballPhysics() {
 		playerScores();
 	}
 
-	// update ball position over time
-	ball.position.x += ballDirX * ballSpeed;
-	ball.position.y += ballDirY * ballSpeed;
-
-
-	var ballZpos = 0, xPos;
-	if (ballDirX == TO_OPPONENT)
-		xPos = ball.position.x;
-	else
-		xPos = -ball.position.x;
-
-	ballZpos += ballCoefficientTable[0];
-	ballZpos += ballCoefficientTable[1] * xPos;
-	ballZpos += ballCoefficientTable[2] * Math.pow(xPos, 2);
-	ballZpos += ballCoefficientTable[3] * Math.pow(xPos, 3);
-
-	ball.position.z = ballZpos;
-
+	// hit on floor
 	if (ball.position.z - ballRadius <= 0) {
 		if (ball.position.y > fieldHeight / 2 || ball.position.y < -fieldHeight / 2) {
-			if (ballDirX == TO_OPPONENT) {
+			if (ballDirX > 0) {
 				cpuScores();
+				return;
 			}
 			else {
 				playerScores();
+				return;
 			}
 		}
+		ball.position.z = ballRadius;
+		ballDirZ *= -0.9;
+		ballDirX *= 0.8;
+		ballDirY *= 0.9;
+
+		if (Math.abs(ballDirZ) < 0.2) {
+			resetBall(0);
+		}else{
+			//play ball hit table sound
+			var rnd = Math.floor( Math.random()*3 );
+			Sound.playStaticSound(Sound["table"+rnd],0.6 + Math.random()*0.4);
+		}
 	}
+
+
+	// update ball position over time
+	ball.position.x += ballDirX * ballSpeed;
+	ball.position.y += ballDirY * ballSpeed;
+	ball.position.z += ballDirZ;
 }
 
 // Handles CPU paddle movement and logic
 function opponentPaddleMovement()
 {
-	if (ballDirX == TO_OPPONENT){
+	if (ballDirX > 0){
 	// Lerp towards the ball on the y plane
 		paddle2DirY = Math.sign(ball.position.y - paddle2.position.y) * paddleSpeed/10 * difficulty;
 	}
@@ -509,14 +506,18 @@ function paddlePhysics()
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
 
+				ballDirZ = -(ball.position.z*0.05)+ 4 + Math.random()*0.4;
+				ballDirX = Math.sign(ballDirX)*(hitStr + Math.random()*hitStr/2);
+				ballDirY = paddle1DirY * 0.5 * (0.5+Math.random());
+				ballDirY *= (0.5+Math.random());
+
+				//play hit ball sound
+				var rnd = Math.floor( Math.random()*5 );
+				Sound.playStaticSound(Sound["paddle"+rnd],0.6+Math.random()*0.4);
+
 				if (isSpacePressed){
-					// close corner
-					ballDirY = Math.sign(paddle1.position.y+0.01)*( fieldHeight/2 - Math.abs(paddle1.position.y)) / fieldWidth;
-					//far corner
-					ballDirY = -Math.sign(paddle1.position.y+0.01)*(Math.abs(paddle1.position.y) + fieldHeight/2) / fieldWidth;
-				}
-				else{
-					ballDirY = paddle1DirY * 0.1;
+					ballDirX*=1.5;
+					ballDirZ*=0.5
 				}
 			}
 		}
@@ -533,21 +534,28 @@ function paddlePhysics()
 		if (ball.position.y <= paddle2.position.y + paddleHeight/2
 		&&  ball.position.y >= paddle2.position.y - paddleHeight/2)
 		{
-			if (ballDirX == TO_OPPONENT)
+			if (ballDirX > 0)
 			{
+				//play hit ball sound
+				var rnd = Math.floor( Math.random()*5 );
+				Sound.playStaticSound(Sound["paddle"+rnd],0.6+Math.random()*0.4);
+
 				// switch direction of ball travel to create bounce
 				ballDirX = -ballDirX;
 
-				var offset = 5 + Math.random()*100;
+				ballDirZ = -(ball.position.z*0.05)+ 4 + Math.random()*0.4;
+				ballDirX = Math.sign(ballDirX)*(hitStr + Math.random()*hitStr/2);
 
-				if (Math.round(Math.random()*100) % 2 == 0){
+				if (Math.floor(Math.random()*2) % 2 == 0){
 					//close corner
-					ballDirY =  Math.sign(paddle2.position.y+0.01)*(fieldHeight/2 - Math.abs(paddle2.position.y) - offset) / fieldWidth;
+					ballDirY =  Math.sign(paddle2.position.y+0.01)*(fieldHeight/2 - Math.abs(paddle2.position.y)) / fieldWidth;
 				}
 				else{
 					//far corner
-					ballDirY = -Math.sign(paddle2.position.y+0.01)*(fieldHeight/2 + Math.abs(paddle2.position.y) - offset) / fieldWidth;
+					ballDirY = -Math.sign(paddle2.position.y+0.01)*(fieldHeight/2 + Math.abs(paddle2.position.y)) / fieldWidth;
 				}
+
+				ballDirY *= (Math.random()*8);
 			}
 		}
 	}
@@ -558,22 +566,24 @@ function resetBall(loser)
 	// position the ball in the center of the table
 	ball.position.x = 0;
 	ball.position.y = 0;
+	ball.position.z = 30;
 
 	startTimer = GAME_START_TIME;
 	
 	// if player lost the last point, we send the ball to opponent
 	if (loser == 1)
 	{
-		ballDirX = -1;
+		ballDirX = -ballInitX;
 	}
 	// else if opponent lost, we send ball to player
 	else
 	{
-		ballDirX = 1;
+		ballDirX = ballInitX;
 	}
 	
 	// set the ball to move +ve in y plane (towards left from the camera)
-	ballDirY = 0;
+	ballDirY = ballInitY;
+	ballDirZ = ballInitZ;
 }
 
 function matchScoreCheck()
@@ -584,6 +594,7 @@ function matchScoreCheck()
 		ballSpeed = 0;
 		// write to the banner
 		document.getElementById("scores").innerHTML = "Player wins!";
+		gameOver = true;
 	}
 	else if (score2 >= maxScore)
 	{
@@ -591,6 +602,7 @@ function matchScoreCheck()
 		ballSpeed = 0;
 		// write to the banner
 		document.getElementById("scores").innerHTML = "CPU wins!";
+		gameOver = true;
 	}
 }
 
@@ -613,3 +625,4 @@ function playerScores() {
 	resetBall(1);
 	matchScoreCheck();
 }
+
