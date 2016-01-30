@@ -6,10 +6,7 @@ var renderer, scene, camera, pointLight, spotLight;
 var fieldWidth = 400, fieldHeight = 200, fieldDepth = 50;
 
 // paddle variables
-var paddleWidth, paddleHeight, paddleDepth, paddleQuality;
-var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5, paddleMaxSpeed = 8;
-var hitStr = 4;
-var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
+
 
 // net variables
 var netSideWidth = 5, netSideHeight = 30, netSideDepth = 4;
@@ -24,16 +21,21 @@ var ballDirX = ballInitX, ballDirY = ballInitY, ballDirZ = ballInitZ, ballSpeed 
 var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 5;
 var GAME_START_TIME = 1000, startTimer = GAME_START_TIME;
+
 // ball physics variables
 var gravity = 0.1, ballInactive = false;
 
 // game-related variables
 var score1 = 0, score2 = 0, gameOver = false;
+
 // you can change this to any positive whole number
 var maxScore = 7;
 
 // set opponent reflexes (1 - easiest, 5 - hardest)
 var difficulty = 4;
+
+//Utils:
+var deg90 = Math.PI / 2;
 ////////////////////////////////////////////////////////////////////
 
 function setup() {
@@ -191,37 +193,19 @@ function createScene() {
     ball.receiveShadow = true;
     ball.castShadow = true;
 
-    // // set up the paddle vars
+    // set up the paddle vars
     paddleWidth = 10;
     paddleHeight = 30;
     paddleDepth = 10;
     paddleQuality = 10;
 
-    var paddleGeometry = new THREE.CubeGeometry(
-        paddleWidth,
-        paddleHeight,
-        paddleDepth,
-        paddleQuality,
-        paddleQuality,
-        paddleQuality);
-
-    paddle1 = new THREE.Mesh(paddleGeometry, paddle1Material);
-
-    // // add the sphere to the scene
+    paddle1 = new Paddle().createPaddle();
     scene.add(paddle1);
     paddle1.receiveShadow = true;
     paddle1.castShadow = true;
 
-    paddle2 = new THREE.Mesh(
-        new THREE.CubeGeometry(
-            paddleWidth,
-            paddleHeight,
-            paddleDepth,
-            paddleQuality,
-            paddleQuality,
-            paddleQuality),
 
-        paddle2Material);
+    paddle2 = new Paddle().createPaddle();
 
     // // add the sphere to the scene
     scene.add(paddle2);
