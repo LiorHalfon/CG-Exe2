@@ -11,6 +11,12 @@ var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5, paddleMaxSpeed = 8;
 var hitStr = 4;
 var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 
+// net variables
+var netSideWidth = 5, netSideHeight = 30, netSideDepth = 4;
+var netTopRowHeight = netSideHeight - 3, netDepth = 2, netRowHeight = 2;
+var netColumnTop = netTopRowHeight - 2, netColumnButtom = 5, netGapBetweenColumns = 4;
+var netRows = 5, netColumns = 32;
+
 // ball variables
 var ball, paddle1, paddle2;
 var ballInitX = 3, ballInitY = 0.2, ballInitZ = 1.5;
@@ -288,6 +294,166 @@ function createScene() {
     ground.position.z = -132;
     ground.receiveShadow = true;
     scene.add(ground);
+
+    // Create net right side
+    var netRightSideGeometry = new THREE.Geometry();
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2) - netSideWidth, 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2) - netSideWidth, netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2), netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2), 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2), 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2), netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2) - netSideWidth, netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2) - netSideWidth, 0.0));
+
+    netRightSideGeometry.faces.push(new THREE.Face3(0, 1, 2));
+    netRightSideGeometry.faces.push(new THREE.Face3(0, 2, 3));
+    netRightSideGeometry.faces.push(new THREE.Face3(2, 3, 4));
+    netRightSideGeometry.faces.push(new THREE.Face3(3, 4, 5));
+    netRightSideGeometry.faces.push(new THREE.Face3(4, 5, 6));
+    netRightSideGeometry.faces.push(new THREE.Face3(5, 6, 7));
+    netRightSideGeometry.faces.push(new THREE.Face3(6, 7, 0));
+    netRightSideGeometry.faces.push(new THREE.Face3(7, 0, 1));
+
+    var netRightSideMaterial = new THREE.MeshBasicMaterial({
+        color:0xFFFFFF,
+        side:THREE.DoubleSide
+    });
+
+    var netRightSideMesh = new THREE.Mesh(netRightSideGeometry, netRightSideMaterial);
+    netRightSideMesh.position.set(0.0, 0.0, 0.0);
+
+    netRightSideMesh.receiveShadow = true;
+    netRightSideMesh.castShadow = true;
+
+    scene.add(netRightSideMesh);
+
+    // Create net left side
+    var netLeftSideGeometry = new THREE.Geometry();
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2) + netSideWidth, 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2) + netSideWidth, netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2), netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2), 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2), 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2), netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2) + netSideWidth, netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2) + netSideWidth, 0.0));
+
+    netLeftSideGeometry.faces.push(new THREE.Face3(0, 1, 2));
+    netLeftSideGeometry.faces.push(new THREE.Face3(0, 2, 3));
+    netLeftSideGeometry.faces.push(new THREE.Face3(2, 3, 4));
+    netLeftSideGeometry.faces.push(new THREE.Face3(3, 4, 5));
+    netLeftSideGeometry.faces.push(new THREE.Face3(4, 5, 6));
+    netLeftSideGeometry.faces.push(new THREE.Face3(5, 6, 7));
+    netLeftSideGeometry.faces.push(new THREE.Face3(6, 7, 0));
+    netLeftSideGeometry.faces.push(new THREE.Face3(7, 0, 1));
+
+    var netLeftSideMaterial = new THREE.MeshBasicMaterial({
+        color:0xFFFFFF,
+        side:THREE.DoubleSide
+    });
+
+    var netLeftSideMesh = new THREE.Mesh(netLeftSideGeometry, netLeftSideMaterial);
+    netLeftSideMesh.position.set(0.0, 0.0, 0.0);
+
+    netLeftSideMesh.receiveShadow = true;
+    netLeftSideMesh.castShadow = true;
+
+    scene.add(netLeftSideMesh);
+
+    // Create array of net rows
+    var netRowsGeometryArray = [];
+    var netMeshArray = [];
+
+    var netMaterial = new THREE.MeshBasicMaterial({
+        color:0x000000,
+        side:THREE.DoubleSide
+    });
+
+    for(i = 0; i < netRows; i++)
+    {
+        // Create net
+        var netGeometry = new THREE.Geometry();
+        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2), netTopRowHeight - netRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(2),
+            netTopRowHeight - netRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(-2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(-2),
+            netTopRowHeight - netRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(-2), netTopRowHeight - netRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(-2), netTopRowHeight - i*5));
+
+        netGeometry.faces.push(new THREE.Face3(0, 1, 2));
+        netGeometry.faces.push(new THREE.Face3(1, 2, 3));
+        netGeometry.faces.push(new THREE.Face3(2, 3, 4));
+        netGeometry.faces.push(new THREE.Face3(3, 4, 5));
+        netGeometry.faces.push(new THREE.Face3(2, 5, 6));
+        netGeometry.faces.push(new THREE.Face3(1, 5, 6));
+        netGeometry.faces.push(new THREE.Face3(6, 7, 0));
+        netGeometry.faces.push(new THREE.Face3(6, 7, 1));
+        netGeometry.faces.push(new THREE.Face3(7, 4, 0));
+        netGeometry.faces.push(new THREE.Face3(7, 4, 3));
+
+        netRowsGeometryArray.push(netGeometry);
+
+        var netMesh = new THREE.Mesh(netGeometry, netMaterial);
+        netMesh.position.set(0.0, 0.0, 0.0);
+
+        netMesh.receiveShadow = true;
+        netMesh.castShadow = true;
+
+        netMeshArray.push(netMesh);
+
+        scene.add(netMesh);
+    }
+
+    // Create array of net columns
+    var netColumnsGeometryArray = [];
+
+    for(i = 1; i <= netColumns; i++)
+    {
+        // Create net
+        var netGeometry = new THREE.Geometry();
+        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2) - i*(netGapBetweenColumns + netDepth),
+            netColumnTop));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
+            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth), netColumnTop));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2) - i*(netGapBetweenColumns + netDepth),
+            netColumnButtom));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
+            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth), netColumnButtom));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
+            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnButtom));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
+            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnTop));
+        netGeometry.vertices.push(new THREE.Vector3(1.0,
+            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnTop));
+        netGeometry.vertices.push(new THREE.Vector3(1.0,
+            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnButtom));
+
+        netGeometry.faces.push(new THREE.Face3(0, 1, 2));
+        netGeometry.faces.push(new THREE.Face3(1, 2, 3));
+        netGeometry.faces.push(new THREE.Face3(1, 3, 4));
+        netGeometry.faces.push(new THREE.Face3(3, 4, 5));
+        netGeometry.faces.push(new THREE.Face3(4, 5, 6));
+        netGeometry.faces.push(new THREE.Face3(5, 6, 7));
+        netGeometry.faces.push(new THREE.Face3(6, 7, 0));
+        netGeometry.faces.push(new THREE.Face3(7, 0, 2));
+
+        netColumnsGeometryArray.push(netGeometry);
+
+        var netMesh = new THREE.Mesh(netGeometry, netMaterial);
+        netMesh.position.set(0.0, 0.0, 0.0);
+
+        netMesh.receiveShadow = true;
+        netMesh.castShadow = true;
+
+        netMeshArray.push(netMesh);
+
+        scene.add(netMesh);
+    }
 
     shadow.position.set(0, 0, ground.position.z + 20);
 
