@@ -19,7 +19,7 @@ var ball, paddle1, paddle2;
 var ballInitX = 3, ballInitY = 0.2, ballInitZ = 1.5;
 var ballDirX = ballInitX, ballDirY = ballInitY, ballDirZ = ballInitZ, ballSpeed = 1;
 var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
-var ballRadius = 5;
+var ballRadius = 4;
 var GAME_START_TIME = 1000, startTimer = GAME_START_TIME;
 
 // ball physics variables
@@ -171,7 +171,8 @@ function createScene() {
     var sphereMaterial =
         new THREE.MeshLambertMaterial(
             {
-                color: 0xD43001
+               // color: 0xD43001
+                color: 0x777777
             });
 
     // Create a ball with sphere geometry
