@@ -17,7 +17,7 @@ function Paddle() {
     this.handleHeight = paddleThickness;
     this.handleWidth = 4;
 
-    this.createPaddle = function(){
+    this.createPaddle = function( color ){
         // Create Paddle 2 side planes
         var paddleGeometry = new THREE.CircleGeometry(paddleRadius, paddleRadius,
             paddleThickness,
@@ -25,11 +25,18 @@ function Paddle() {
         var paddleGeometry = new THREE.CircleGeometry(paddleRadius,
             this.paddleRadiusSegments);
 
-        var paddleTexture = THREE.ImageUtils.loadTexture("textures/blue-paddle-texture.jpg");
+        var paddleTexture, paddleColor
+        if (color=="red"){
+            paddleTexture = THREE.ImageUtils.loadTexture("textures/red-paddle-texture.jpg");
+            paddleColor = 0x994444;
+        }else{
+            paddleTexture = THREE.ImageUtils.loadTexture("textures/blue-paddle-texture.jpg");
+            paddleColor = 0x444499;
+        }
 
         var paddleMaterial = new THREE.MeshLambertMaterial({
             map: paddleTexture,
-            color: 0x444499
+            color: paddleColor
         });
         paddleMaterial.side = THREE.DoubleSide;
 
