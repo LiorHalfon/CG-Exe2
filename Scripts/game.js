@@ -5,9 +5,6 @@ var renderer, scene, camera, pointLight, spotLight;
 // field variables
 var fieldWidth = 400, fieldHeight = 200, fieldDepth = 50;
 
-// paddle variables
-
-
 // net variables
 var netSideWidth = 5, netSideHeight = 30, netSideDepth = 4;
 var netTopRowHeight = netSideHeight - 3, netDepth = 2, netRowHeight = 2;
@@ -190,15 +187,9 @@ function createScene() {
     ball.position.x = 0;
     ball.position.y = 0;
     // set ball above the table surface
-    ball.position.z = radius + 20;
+    ball.position.z = radius + 35;
     ball.receiveShadow = true;
     ball.castShadow = true;
-
-    // set up the paddle vars
-    paddleWidth = 10;
-    paddleHeight = 30;
-    paddleDepth = 10;
-    paddleQuality = 10;
 
     paddle1 = new Paddle().createPaddle();
     scene.add(paddle1);
@@ -214,8 +205,8 @@ function createScene() {
     paddle2.castShadow = true;
 
     // set paddles on each side of the Table
-    paddle1.position.x = -fieldWidth / 2 + paddleWidth;
-    paddle2.position.x = fieldWidth / 2 - paddleWidth;
+    paddle1.position.x = -fieldWidth / 2 + paddleThickness;
+    paddle2.position.x = fieldWidth / 2 - paddleThickness;
 
     // lift paddles over playing surface
     paddle1.position.z = 30;
@@ -546,6 +537,14 @@ function opponentPaddleMovement() {
 
     paddle2.position.y += paddle2DirY;
 
+    //Follow the ball height
+    if (ball.position.z <= paddleRadius + handleDepth || ballDirX < 0)
+    {
+        paddle2.position.z += (paddleRadius + handleDepth - paddle2.position.z) * 0.02;
+    }else{
+        paddle2.position.z += (ball.position.z - paddle2.position.z) * 0.05;
+    }
+
     paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
 }
 
@@ -603,6 +602,14 @@ function playerPaddleMovement() {
             isSpacePressed = false;
     }
 
+    //Follow the ball height
+    if (ball.position.z <= paddleRadius + handleDepth || ballDirX > 0)
+    {
+        paddle1.position.z += (paddleRadius + handleDepth - paddle1.position.z) * 0.02;
+    }else{
+        paddle1.position.z += (ball.position.z - paddle1.position.z) * 0.05;
+    }
+
     paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
     paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
     paddle1.position.y += paddle1DirY;
@@ -617,7 +624,7 @@ function cameraPhysics() {
     // move to behind the player's paddle
     camera.position.x = paddle1.position.x - 120;
     camera.position.y += (paddle1.position.y - camera.position.y) * 0.05;
-    camera.position.z = paddle1.position.z + 100 + 0.04 * (-ball.position.x + paddle1.position.x);
+    camera.position.z = 30 + 100 + 0.04 * (-ball.position.x + paddle1.position.x);
 
     // rotate to face towards the opponent
     camera.rotation.x = -0.01 * (ball.position.y) * Math.PI / 180;
@@ -627,23 +634,22 @@ function cameraPhysics() {
 
 // Handles paddle collision logic
 function paddlePhysics() {
-    // PLAYER PADDLE LOGIC
+    var currBallX = ball.position.x, nextBallX = currBallX + ballDirX * ballSpeed;
 
+    // PLAYER PADDLE LOGIC
     // if ball is aligned with paddle1 on x plane
-    // remember the position is the CENTER of the object
-    // we only check between the front and the middle of the paddle (one-way collision)
-    if (ball.position.x <= paddle1.position.x + paddleWidth
-        && ball.position.x >= paddle1.position.x) {
+    var playerFrontOfThePaddle = paddle1.position.x + paddleThickness/2;
+    if (currBallX >= playerFrontOfThePaddle && nextBallX <= playerFrontOfThePaddle) {
         // and if ball is aligned with paddle1 on y plane
-        if (ball.position.y <= paddle1.position.y + paddleHeight / 2
-            && ball.position.y >= paddle1.position.y - paddleHeight / 2) {
+        if (ball.position.y <= paddle1.position.y + paddleRadius
+            && ball.position.y >= paddle1.position.y - paddleRadius) {
             // and if ball is travelling towards player (-ve direction)
             if (ballDirX < 0) {
                 // switch direction of ball travel to create bounce
                 ballDirX = -ballDirX;
 
-                ballDirZ = -(ball.position.z * 0.05) + 4 + Math.random() * 0.4;
-                ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2);
+                ballDirZ = -(ball.position.z * 0.018) + 3;
+                ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2 + Math.abs(paddle1DirY) / 8); // Y dir because side hits need to be strongr
                 ballDirY = paddle1DirY * 0.5 * (0.5 + Math.random());
                 ballDirY *= (0.5 + Math.random());
 
@@ -663,11 +669,11 @@ function paddlePhysics() {
 
     // if ball is aligned with paddle2 on x plane
     // we only check between the front and the middle of the paddle (one-way collision)
-    if (ball.position.x <= paddle2.position.x + paddleWidth
-        && ball.position.x >= paddle2.position.x) {
+    var opponentFrontOfThePaddle = paddle2.position.x + paddleThickness/2;
+    if (currBallX <= opponentFrontOfThePaddle && nextBallX >= opponentFrontOfThePaddle) {
         // and if ball is aligned with paddle2 on y plane
-        if (ball.position.y <= paddle2.position.y + paddleHeight / 2
-            && ball.position.y >= paddle2.position.y - paddleHeight / 2) {
+        if (ball.position.y <= paddle2.position.y + paddleRadius
+            && ball.position.y >= paddle2.position.y - paddleRadius) {
             if (ballDirX > 0) {
                 //play hit ball sound
                 var rnd = Math.floor(Math.random() * 5);
@@ -676,7 +682,7 @@ function paddlePhysics() {
                 // switch direction of ball travel to create bounce
                 ballDirX = -ballDirX;
 
-                ballDirZ = -(ball.position.z * 0.05) + 4 + Math.random() * 0.4;
+                ballDirZ = -(ball.position.z * 0.018) + 3;
                 ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2);
 
                 if (Math.floor(Math.random() * 2) % 2 == 0) {
@@ -688,7 +694,7 @@ function paddlePhysics() {
                     ballDirY = -Math.sign(paddle2.position.y + 0.01) * (fieldHeight / 2 + Math.abs(paddle2.position.y)) / fieldWidth;
                 }
 
-                ballDirY *= (Math.random() * 6);
+                ballDirY *= (Math.random() * 3);
             }
         }
     }

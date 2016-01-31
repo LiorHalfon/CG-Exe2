@@ -1,10 +1,9 @@
 
 // Globals:
 //===========
-var paddleRadius = 15;
+var paddleRadius = 15, handleDepth = 12;
 var paddleThickness = 2;
 
-var paddleWidth, paddleHeight, paddleDepth, paddleQuality;
 var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5, paddleMaxSpeed = 8;
 var hitStr = 4;
 var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
@@ -17,7 +16,6 @@ function Paddle() {
     // Paddle handle:
     this.handleHeight = paddleThickness;
     this.handleWidth = 4;
-    this.handleDepth = 12;
 
     this.createPaddle = function(){
         // Create Paddle 2 side planes
@@ -64,7 +62,7 @@ function Paddle() {
         // Create Handle
         var handleGeometry = new THREE.CubeGeometry(this.handleWidth,
             this.handleHeight,
-            this.handleDepth);
+            handleDepth);
 
         var handleMaterial = new THREE.MeshLambertMaterial({color: 0x777777,
            map: THREE.ImageUtils.loadTexture("textures/wood.jpg")});
@@ -72,7 +70,7 @@ function Paddle() {
         var handleMesh = new THREE.Mesh(handleGeometry, handleMaterial);
         handleMesh.castShadow = true;
         handleMesh.receiveShadow = true;
-        handleMesh.position.z = -paddleRadius - this.handleDepth/2;
+        handleMesh.position.z = -paddleRadius - handleDepth/2;
         handleMesh.rotation.z = deg90;
 
         this.paddle.add(handleMesh);
