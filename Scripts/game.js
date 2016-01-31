@@ -545,7 +545,8 @@ function opponentPaddleMovement() {
         paddle2.position.z += (ball.position.z - paddle2.position.z) * 0.05;
     }
 
-    paddle2.scale.y += (1 - paddle2.scale.y) * 0.2;
+    // Rotate paddle when moving left and right
+    paddle2.rotation.x = -paddle2.position.y * deg90/(fieldHeight/2);
 }
 
 
@@ -562,11 +563,9 @@ function playerPaddleMovement() {
                 paddle1DirY *= 1.05;
             }
         }
-        // else we don't move and stretch the paddle
-        // to indicate we can't move
+        // Paddle cant move
         else {
             paddle1DirY = 0;
-            paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
         }
     }
     // move right
@@ -581,7 +580,6 @@ function playerPaddleMovement() {
         }
         else {
             paddle1DirY = 0;
-            paddle1.scale.z += (10 - paddle1.scale.z) * 0.2;
         }
     }
     // else don't move paddle
@@ -614,10 +612,10 @@ function playerPaddleMovement() {
         paddle1.position.z += (ball.position.z - paddle1.position.z) * 0.05;
     }
 
-    paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
-    paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
+    //Move paddle left and right
     paddle1.position.y += paddle1DirY;
-
+    // Rotate paddle when moving left and right
+    paddle1.rotation.x = -paddle1.position.y * deg90/(fieldHeight/2);
 }
 
 // Handles camera and lighting logic
