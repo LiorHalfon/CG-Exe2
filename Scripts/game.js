@@ -593,13 +593,17 @@ function playerPaddleMovement() {
     if (Key.isDown(Key.SPACE) && !isSpacePressed) {
         isSpacePressed = true;
         spaceKeyTimer = INITIAL_SPACE_KEY_TIME;
+        paddle1.rotation.y = -deg90/2;
     }
 
     if (isSpacePressed) {
-        paddle1.scale.z = 5;
+        paddle1.rotation.y += (deg90 - paddle1.rotation.y) * 0.08;
         spaceKeyTimer -= 16;
         if (spaceKeyTimer <= 0)
             isSpacePressed = false;
+    }else{
+        //take paddle back to normal position
+        paddle1.rotation.y -= paddle1.rotation.y * 0.05;
     }
 
     //Follow the ball height
@@ -613,6 +617,7 @@ function playerPaddleMovement() {
     paddle1.scale.y += (1 - paddle1.scale.y) * 0.2;
     paddle1.scale.z += (1 - paddle1.scale.z) * 0.2;
     paddle1.position.y += paddle1DirY;
+
 }
 
 // Handles camera and lighting logic
