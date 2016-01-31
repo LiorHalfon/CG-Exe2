@@ -2,20 +2,21 @@
 // scene object variables
 var renderer, scene, camera, pointLight, spotLight;
 
-// field variables
-var fieldWidth = 400, fieldHeight = 200, fieldDepth = 50;
+// Table variables
+var tableLong = 400, tableWidth = 200;
 
 // net variables
 var netSideWidth = 5, netSideHeight = 30, netSideDepth = 4;
 var netTopRowHeight = netSideHeight - 3, netDepth = 2, netRowHeight = 2;
 var netColumnTop = netTopRowHeight - 2, netColumnButtom = 5, netGapBetweenColumns = 4;
 var netRows = 5, netColumns = 32;
+var netSidesColor = 0x222222;
 
 // ball variables
 var ball, paddle1, paddle2;
 var ballInitX = 3, ballInitY = 0.2, ballInitZ = 1.5;
 var ballDirX = ballInitX, ballDirY = ballInitY, ballDirZ = ballInitZ, ballSpeed = 1;
-var BALL_MAX_HEIGHT = 50, ballZSpeed = 0.15;
+var BALL_INIT_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 4;
 var GAME_START_TIME = 1000, startTimer = GAME_START_TIME;
 
@@ -43,7 +44,6 @@ function setup() {
     // set up all the 3D objects in the scene
     createScene();
 
-    // and let's get cracking!
     draw();
 }
 
@@ -60,8 +60,7 @@ function createScene() {
 
     var c = document.getElementById("gameCanvas");
 
-    // create a WebGL renderer, camera
-    // and a scene
+    // create a WebGL renderer, camera and a scene
     renderer = new THREE.WebGLRenderer();
     camera =
         new THREE.PerspectiveCamera(
@@ -72,7 +71,6 @@ function createScene() {
 
     scene = new THREE.Scene();
 
-    // add the camera to the scene
     scene.add(camera);
 
     // set a default position for the camera
@@ -87,17 +85,17 @@ function createScene() {
     c.appendChild(renderer.domElement);
 
     // set up the playing surface plane
-    var planeWidth = fieldWidth,
-        planeHeight = fieldHeight,
+    var planeWidth = tableLong,
+        planeHeight = tableWidth,
         planeQuality = 10;
 
-    // create the paddle1's material
+    // create the paddle1's material (Player)
     var paddle1Material =
         new THREE.MeshLambertMaterial(
             {
                 color: 0x1B32C0
             });
-    // create the paddle2's material
+    // create the paddle2's material (Opponent)
     var paddle2Material =
         new THREE.MeshLambertMaterial(
             {
@@ -153,12 +151,12 @@ function createScene() {
         map: THREE.ImageUtils.loadTexture("textures/shadow.png"),
         transparent: true
     });
-    var shadowPlane = new THREE.PlaneGeometry(fieldWidth * 2, fieldHeight * 2);
+    var shadowPlane = new THREE.PlaneGeometry(tableLong * 2, tableWidth * 2);
     var shadow = new THREE.Mesh(shadowPlane, shadowMaterial);
     shadow.depthTest = false;
     scene.add(shadow);
 
-    // // set up the sphere vars
+    // set up the sphere vars
     // lower 'segment' and 'ring' values will increase performance
     var radius = ballRadius,
         segments = 6,
@@ -187,7 +185,7 @@ function createScene() {
     ball.position.x = 0;
     ball.position.y = 0;
     // set ball above the table surface
-    ball.position.z = radius + 35;
+    ball.position.z = BALL_INIT_HEIGHT;
     ball.receiveShadow = true;
     ball.castShadow = true;
 
@@ -205,8 +203,8 @@ function createScene() {
     paddle2.castShadow = true;
 
     // set paddles on each side of the Table
-    paddle1.position.x = -fieldWidth / 2 + paddleThickness;
-    paddle2.position.x = fieldWidth / 2 - paddleThickness;
+    paddle1.position.x = -tableLong / 2 + paddleThickness;
+    paddle2.position.x = tableLong / 2 - paddleThickness;
 
     // lift paddles over playing surface
     paddle1.position.z = 30;
@@ -255,7 +253,6 @@ function createScene() {
         scene.add(backdrop);
     }
 
-    // finally we finish by adding a ground plane
     var ground = new THREE.Mesh(
         new THREE.CubeGeometry(
             4000,
@@ -266,21 +263,20 @@ function createScene() {
             1),
 
         groundMaterial);
-    // set ground to arbitrary z position to best show off shadowing
     ground.position.z = -132;
     ground.receiveShadow = true;
     scene.add(ground);
 
     // Create net right side
     var netRightSideGeometry = new THREE.Geometry();
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2) - netSideWidth, 0.0));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2) - netSideWidth, netSideHeight));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2), netSideHeight));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(-2), 0.0));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2), 0.0));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2), netSideHeight));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2) - netSideWidth, netSideHeight));
-    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(-2) - netSideWidth, 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(-2) - netSideWidth, 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(-2) - netSideWidth, netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(-2), netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(-2), 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(-2), 0.0));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(-2), netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(-2) - netSideWidth, netSideHeight));
+    netRightSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(-2) - netSideWidth, 0.0));
 
     netRightSideGeometry.faces.push(new THREE.Face3(0, 1, 2));
     netRightSideGeometry.faces.push(new THREE.Face3(0, 2, 3));
@@ -292,7 +288,7 @@ function createScene() {
     netRightSideGeometry.faces.push(new THREE.Face3(7, 0, 1));
 
     var netRightSideMaterial = new THREE.MeshBasicMaterial({
-        color:0xFFFFFF,
+        color:netSidesColor,
         side:THREE.DoubleSide
     });
 
@@ -306,14 +302,14 @@ function createScene() {
 
     // Create net left side
     var netLeftSideGeometry = new THREE.Geometry();
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2) + netSideWidth, 0.0));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2) + netSideWidth, netSideHeight));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2), netSideHeight));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, fieldHeight/(2), 0.0));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2), 0.0));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2), netSideHeight));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2) + netSideWidth, netSideHeight));
-    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, fieldHeight/(2) + netSideWidth, 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(2) + netSideWidth, 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(2) + netSideWidth, netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(2), netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0, tableWidth/(2), 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(2), 0.0));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(2), netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(2) + netSideWidth, netSideHeight));
+    netLeftSideGeometry.vertices.push(new THREE.Vector3(-2.0 + netSideDepth, tableWidth/(2) + netSideWidth, 0.0));
 
     netLeftSideGeometry.faces.push(new THREE.Face3(0, 1, 2));
     netLeftSideGeometry.faces.push(new THREE.Face3(0, 2, 3));
@@ -325,7 +321,7 @@ function createScene() {
     netLeftSideGeometry.faces.push(new THREE.Face3(7, 0, 1));
 
     var netLeftSideMaterial = new THREE.MeshBasicMaterial({
-        color:0xFFFFFF,
+        color:netSidesColor,
         side:THREE.DoubleSide
     });
 
@@ -342,7 +338,7 @@ function createScene() {
     var netMeshArray = [];
 
     var netMaterial = new THREE.MeshBasicMaterial({
-        color:0x000000,
+        color:0xd9d9d9,
         side:THREE.DoubleSide
     });
 
@@ -350,16 +346,16 @@ function createScene() {
     {
         // Create net
         var netGeometry = new THREE.Geometry();
-        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2), netTopRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2), netTopRowHeight - netRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(2),
+        netGeometry.vertices.push(new THREE.Vector3(1.0, tableWidth/(2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, tableWidth/(2), netTopRowHeight - netRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, tableWidth/(2),
             netTopRowHeight - netRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(2), netTopRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(-2), netTopRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, fieldHeight/(-2),
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, tableWidth/(2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, tableWidth/(-2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth, tableWidth/(-2),
             netTopRowHeight - netRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(-2), netTopRowHeight - netRowHeight - i*5));
-        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(-2), netTopRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, tableWidth/(-2), netTopRowHeight - netRowHeight - i*5));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, tableWidth/(-2), netTopRowHeight - i*5));
 
         netGeometry.faces.push(new THREE.Face3(0, 1, 2));
         netGeometry.faces.push(new THREE.Face3(1, 2, 3));
@@ -377,7 +373,6 @@ function createScene() {
         var netMesh = new THREE.Mesh(netGeometry, netMaterial);
         netMesh.position.set(0.0, 0.0, 0.0);
 
-        netMesh.receiveShadow = true;
         netMesh.castShadow = true;
 
         netMeshArray.push(netMesh);
@@ -392,22 +387,22 @@ function createScene() {
     {
         // Create net
         var netGeometry = new THREE.Geometry();
-        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2) - i*(netGapBetweenColumns + netDepth),
+        netGeometry.vertices.push(new THREE.Vector3(1.0, tableWidth/(2) - i*(netGapBetweenColumns + netDepth),
             netColumnTop));
         netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
-            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth), netColumnTop));
-        netGeometry.vertices.push(new THREE.Vector3(1.0, fieldHeight/(2) - i*(netGapBetweenColumns + netDepth),
+            tableWidth/(2) - i*(netGapBetweenColumns + netDepth), netColumnTop));
+        netGeometry.vertices.push(new THREE.Vector3(1.0, tableWidth/(2) - i*(netGapBetweenColumns + netDepth),
             netColumnButtom));
         netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
-            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth), netColumnButtom));
+            tableWidth/(2) - i*(netGapBetweenColumns + netDepth), netColumnButtom));
         netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
-            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnButtom));
+            tableWidth/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnButtom));
         netGeometry.vertices.push(new THREE.Vector3(1.0 - netDepth,
-            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnTop));
+            tableWidth/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnTop));
         netGeometry.vertices.push(new THREE.Vector3(1.0,
-            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnTop));
+            tableWidth/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnTop));
         netGeometry.vertices.push(new THREE.Vector3(1.0,
-            fieldHeight/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnButtom));
+            tableWidth/(2) - i*(netGapBetweenColumns + netDepth) - netDepth, netColumnButtom));
 
         netGeometry.faces.push(new THREE.Face3(0, 1, 2));
         netGeometry.faces.push(new THREE.Face3(1, 2, 3));
@@ -423,7 +418,6 @@ function createScene() {
         var netMesh = new THREE.Mesh(netGeometry, netMaterial);
         netMesh.position.set(0.0, 0.0, 0.0);
 
-        netMesh.receiveShadow = true;
         netMesh.castShadow = true;
 
         netMeshArray.push(netMesh);
@@ -457,9 +451,7 @@ function createScene() {
 }
 
 function draw() {
-    // draw THREE.JS scene
     renderer.render(scene, camera);
-    // loop draw function call
     requestAnimationFrame(draw);
 
     ballPhysics();
@@ -476,21 +468,22 @@ function ballPhysics() {
         return;
     }
 
+    // Invoke gravity on the ball
     ballDirZ -= gravity;
 
     // if ball goes off the 'left' side (Player's side)
-    if (ball.position.x <= -fieldWidth / 2) {
+    if (ball.position.x <= -tableLong / 2) {
         cpuScores();
     }
 
     // if ball goes off the 'right' side (CPU's side)
-    if (ball.position.x >= fieldWidth / 2) {
+    if (ball.position.x >= tableLong / 2) {
         playerScores();
     }
 
     // hit on floor
     if (ball.position.z - ballRadius <= 0) {
-        if (ball.position.y > fieldHeight / 2 || ball.position.y < -fieldHeight / 2) {
+        if (ball.position.y > tableWidth / 2 || ball.position.y < -tableWidth / 2) {
             if (ballDirX > 0) {
                 cpuScores();
                 return;
@@ -546,7 +539,7 @@ function opponentPaddleMovement() {
     }
 
     // Rotate paddle when moving left and right
-    paddle2.rotation.x = -paddle2.position.y * deg90/(fieldHeight/2);
+    paddle2.rotation.x = -paddle2.position.y * deg90/(tableWidth/2);
 }
 
 
@@ -556,11 +549,11 @@ function playerPaddleMovement() {
     if (Key.isDown(Key.A)) {
         // if paddle is not touching the boundary
         // we move
-        if (paddle1.position.y < fieldHeight) {
+        if (paddle1.position.y < tableWidth) {
             if (paddle1DirY <= 0) {
                 paddle1DirY = paddleSpeed * 0.5;
             } else if (Math.abs(paddle1DirY) < paddleMaxSpeed){
-                paddle1DirY *= 1.05;
+                paddle1DirY *= 1.02;
             }
         }
         // Paddle cant move
@@ -570,12 +563,12 @@ function playerPaddleMovement() {
     }
     // move right
     else if (Key.isDown(Key.D)) {
-        if (paddle1.position.y > -fieldHeight) {
+        if (paddle1.position.y > -tableWidth) {
             if (paddle1DirY >= 0) {
                 paddle1DirY = -paddleSpeed * 0.5;
             }
             else if (Math.abs(paddle1DirY) < paddleMaxSpeed) {
-                paddle1DirY *= 1.05;
+                paddle1DirY *= 1.02;
             }
         }
         else {
@@ -615,7 +608,7 @@ function playerPaddleMovement() {
     //Move paddle left and right
     paddle1.position.y += paddle1DirY;
     // Rotate paddle when moving left and right
-    paddle1.rotation.x = -paddle1.position.y * deg90/(fieldHeight/2);
+    paddle1.rotation.x = -paddle1.position.y * deg90/(tableWidth/2);
 }
 
 // Handles camera and lighting logic
@@ -640,7 +633,6 @@ function paddlePhysics() {
     var currBallX = ball.position.x, nextBallX = currBallX + ballDirX * ballSpeed;
 
     // PLAYER PADDLE LOGIC
-    // if ball is aligned with paddle1 on x plane
     var playerFrontOfThePaddle = paddle1.position.x + paddleThickness/2;
     if (currBallX >= playerFrontOfThePaddle && nextBallX <= playerFrontOfThePaddle) {
         // and if ball is aligned with paddle1 on y plane
@@ -648,7 +640,7 @@ function paddlePhysics() {
             && ball.position.y >= paddle1.position.y - paddleRadius) {
             // and if ball is travelling towards player (-ve direction)
             if (ballDirX < 0) {
-                // switch direction of ball travel to create bounce
+                // switch direction of ball travel
                 ballDirX = -ballDirX;
 
                 ballDirZ = -(ball.position.z * 0.018) + 3;
@@ -669,9 +661,6 @@ function paddlePhysics() {
     }
 
     // OPPONENT PADDLE LOGIC
-
-    // if ball is aligned with paddle2 on x plane
-    // we only check between the front and the middle of the paddle (one-way collision)
     var opponentFrontOfThePaddle = paddle2.position.x + paddleThickness/2;
     if (currBallX <= opponentFrontOfThePaddle && nextBallX >= opponentFrontOfThePaddle) {
         // and if ball is aligned with paddle2 on y plane
@@ -682,7 +671,7 @@ function paddlePhysics() {
                 var rnd = Math.floor(Math.random() * 5);
                 Sound.playStaticSound(Sound["paddle" + rnd], 0.6 + Math.random() * 0.4);
 
-                // switch direction of ball travel to create bounce
+                // switch direction of ball travel
                 ballDirX = -ballDirX;
 
                 ballDirZ = -(ball.position.z * 0.018) + 3;
@@ -690,13 +679,14 @@ function paddlePhysics() {
 
                 if (Math.floor(Math.random() * 2) % 2 == 0) {
                     //close corner
-                    ballDirY = Math.sign(paddle2.position.y + 0.01) * (fieldHeight / 2 - Math.abs(paddle2.position.y)) / fieldWidth;
+                    ballDirY = Math.sign(paddle2.position.y + 0.01) * (tableWidth / 2 - Math.abs(paddle2.position.y)) / tableLong;
                 }
                 else {
                     //far corner
-                    ballDirY = -Math.sign(paddle2.position.y + 0.01) * (fieldHeight / 2 + Math.abs(paddle2.position.y)) / fieldWidth;
+                    ballDirY = -Math.sign(paddle2.position.y + 0.01) * (tableWidth / 2 + Math.abs(paddle2.position.y)) / tableLong;
                 }
 
+                // Add some randomness
                 ballDirY *= (Math.random() * 3);
             }
         }
@@ -707,7 +697,7 @@ function resetBall(loser) {
     // position the ball in the center of the table
     ball.position.x = 0;
     ball.position.y = 0;
-    ball.position.z = 30;
+    ball.position.z = BALL_INIT_HEIGHT;
 
     startTimer = GAME_START_TIME;
 
