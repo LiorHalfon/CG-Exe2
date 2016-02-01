@@ -102,10 +102,12 @@ function createScene() {
                 color: 0xFF4045
             });
     // create the plane's material
+    var tableTexutre = THREE.ImageUtils.loadTexture("textures/blueTable.jpg");
+    //tableTexutre.anisotropy = 16;
     var planeMaterial =
         new THREE.MeshLambertMaterial(
             {
-                map: THREE.ImageUtils.loadTexture("textures/blueTable.jpg"),
+                map: tableTexutre,
                 color: 0x777777
             });
 
@@ -598,11 +600,13 @@ function playerPaddleMovement() {
     }
 
     //Follow the ball height
-    if (ball.position.z <= paddleRadius + handleDepth || ballDirX > 0)
+    if (ball.position.z >= paddleRadius + handleDepth || ballDirX > 0)
     {
-        paddle1.position.z += (paddleRadius + handleDepth - paddle1.position.z) * 0.02;
-    }else{
+        // Go up to ball height
         paddle1.position.z += (ball.position.z - paddle1.position.z) * 0.05;
+    }else{
+        // Go back to table height
+        paddle1.position.z += (paddleRadius + handleDepth - paddle1.position.z) * 0.02;
     }
 
     //Move paddle left and right
