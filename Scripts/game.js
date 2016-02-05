@@ -4,6 +4,8 @@ var renderer, scene, camera, pointLight, spotLight;
 
 // Table variables
 var tableLong = 400, tableWidth = 200;
+var tableLegWidth = 10, tableLegDepth = 10, tableLegHeight = 260;
+var tableLegLeftFrontPosX = -195, tableLegLeftFrontPosY = 95, tableLegLeftFrontPosZ= -130.1;
 
 // net variables
 var netSideWidth = 5, netSideHeight = 30, netSideDepth = 4;
@@ -111,6 +113,16 @@ function createScene() {
                 color: 0x777777
             });
 
+    // create the table's legs material
+    var tableLegMaterial = new THREE.MeshPhongMaterial(
+        {
+            color: 0xdddddd,
+            specular: 0x009900,
+            shininess: 30,
+            shading: THREE.FlatShading
+        }
+    );
+
     // create the pillar's material
     var pillerTexture = THREE.ImageUtils.loadTexture("textures/pillar_texture.jpg");
     pillerTexture.wrapS = THREE.RepeatWrapping;
@@ -134,6 +146,56 @@ function createScene() {
                 color: 0xcccccc
             });
 
+    // Create table's legs
+    var legsArray = [];
+
+    for(i = 1; i <= 4; i++) {
+        var leg = new THREE.Mesh(
+            new THREE.CubeGeometry(tableLegWidth, tableLegDepth, tableLegHeight),
+            tableLegMaterial
+        );
+
+        leg.receiveShadow = true;
+        leg.castShadow = true;
+
+        legsArray.push(leg);
+
+        scene.add(leg);
+    }
+
+    legsArray[0].position.set(tableLegLeftFrontPosX, tableLegLeftFrontPosY, tableLegLeftFrontPosZ);
+    legsArray[1].position.set(tableLegLeftFrontPosX*(-1), tableLegLeftFrontPosY, tableLegLeftFrontPosZ);
+    legsArray[2].position.set(tableLegLeftFrontPosX*(-1), tableLegLeftFrontPosY*(-1), tableLegLeftFrontPosZ);
+    legsArray[3].position.set(tableLegLeftFrontPosX, tableLegLeftFrontPosY*(-1), tableLegLeftFrontPosZ);
+
+    var betweenTableLegsArray = [];
+
+    for(i = 0; i < 2; i++){
+        var betweenLegsWide = new THREE.Mesh(
+            new THREE.CubeGeometry(10, 180, 10),
+            tableLegMaterial
+        );
+
+        var betweenLegsLong = new THREE.Mesh(
+            new THREE.CubeGeometry(380, 10, 10),
+            tableLegMaterial
+        );
+
+        betweenLegsWide.receiveShadow = true;
+        betweenLegsWide.castShadow = true;
+        betweenTableLegsArray.push(betweenLegsWide);
+        scene.add(betweenLegsWide);
+
+        betweenLegsLong.receiveShadow = true;
+        betweenLegsLong.castShadow = true;
+        betweenTableLegsArray.push(betweenLegsLong);
+        scene.add(betweenLegsLong);
+    }
+
+    betweenTableLegsArray[0].position.set(-195, 0, -5.1);
+    betweenTableLegsArray[1].position.set(0, 95, -5.1);
+    betweenTableLegsArray[2].position.set(195, 0, -5.1);
+    betweenTableLegsArray[3].position.set(0, 95, -5.1);
 
     // create the playing surface plane
     var plane = new THREE.Mesh(
