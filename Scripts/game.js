@@ -548,7 +548,7 @@ function ballPhysics() {
         ball.position.z = ballRadius;
         ballDirZ *= -0.7;
         ballDirX *= 0.8;
-        ballDirY *= 0.9;
+        ballDirY *= 0.8;
 
         if (Math.abs(ballDirZ) < 0.5) {
             resetBall(0);
@@ -568,11 +568,13 @@ function ballPhysics() {
         if (ball.position.z < netBottomHitHeight)
         {
             ballDirX*= -0.2;
+            ballDirY*= 0.2;
         }
         //hit the top part of the net -> ball keeps going with lower speed
         else if (ball.position.z < netTopHitHeight)
         {
             ballDirX*= 0.6;
+            ballDirY*= 0.6;
         }
     }
 
@@ -666,7 +668,7 @@ function playerPaddleMovement() {
     }
 
     //Follow the ball height
-    if (ball.position.z >= paddleRadius + handleDepth || ballDirX > 0)
+    if (ball.position.z >= paddleRadius + handleDepth && ballDirX > 0)
     {
         // Go up to ball height
         paddle1.position.z += (ball.position.z - paddle1.position.z) * 0.05;
@@ -715,7 +717,7 @@ function paddlePhysics() {
                 // switch direction of ball travel
                 ballDirX = -ballDirX;
 
-                ballDirZ = -(ball.position.z * 0.018) + 3;
+                ballDirZ = -(ball.position.z * 0.02) + 3.2;
                 ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2 + Math.abs(paddle1DirY) / 8); // Y dir because side hits need to be strongr
                 ballDirY = paddle1DirY * 0.5 * (0.5 + Math.random());
                 ballDirY *= (0.5 + Math.random());
@@ -746,7 +748,7 @@ function paddlePhysics() {
                 // switch direction of ball travel
                 ballDirX = -ballDirX;
 
-                ballDirZ = -(ball.position.z * 0.018) + 3;
+                ballDirZ = -(ball.position.z * 0.02) + 3.2;
                 ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2);
 
                 if (Math.floor(Math.random() * 2) % 2 == 0) {
