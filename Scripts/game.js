@@ -114,14 +114,7 @@ function createScene() {
             });
 
     // create the table's legs material
-    var tableLegMaterial = new THREE.MeshPhongMaterial(
-        {
-            color: 0xdddddd,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.FlatShading
-        }
-    );
+    var tableLegMaterial = new THREE.MeshLambertMaterial( {color: 0x999999});
 
     // create the pillar's material
     var pillerTexture = THREE.ImageUtils.loadTexture("textures/pillar_texture.jpg");
@@ -155,9 +148,6 @@ function createScene() {
             tableLegMaterial
         );
 
-        leg.receiveShadow = true;
-        leg.castShadow = true;
-
         legsArray.push(leg);
 
         scene.add(leg);
@@ -181,13 +171,10 @@ function createScene() {
             tableLegMaterial
         );
 
-        betweenLegsWide.receiveShadow = true;
-        betweenLegsWide.castShadow = true;
         betweenTableLegsArray.push(betweenLegsWide);
         scene.add(betweenLegsWide);
+        betweenLegsWide.receiveShadow = true;
 
-        betweenLegsLong.receiveShadow = true;
-        betweenLegsLong.castShadow = true;
         betweenTableLegsArray.push(betweenLegsLong);
         scene.add(betweenLegsLong);
     }
@@ -675,6 +662,8 @@ function playerPaddleMovement() {
     paddle1.position.y += paddle1DirY;
     // Rotate paddle when moving left and right
     paddle1.rotation.x = -paddle1.position.y * deg90/(tableWidth/2);
+    if (paddle1.rotation.x > deg90 ) paddle1.rotation.x = deg90;
+    if (paddle1.rotation.x < -deg90 ) paddle1.rotation.x = -deg90;
 }
 
 // Handles camera and lighting logic
