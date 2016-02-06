@@ -105,7 +105,7 @@ function createScene() {
             });
     // create the plane's material
     var tableTexutre = THREE.ImageUtils.loadTexture("textures/blueTable.jpg");
-    //tableTexutre.anisotropy = 16;
+    tableTexutre.anisotropy = 16;
     var planeMaterial =
         new THREE.MeshLambertMaterial(
             {
