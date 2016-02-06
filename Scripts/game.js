@@ -13,6 +13,7 @@ var netTopRowHeight = netSideHeight - 3, netDepth = 2, netRowHeight = 2;
 var netColumnTop = netTopRowHeight - 2, netColumnButtom = 5, netGapBetweenColumns = 4;
 var netRows = 5, netColumns = 32;
 var netSidesColor = 0x222222;
+var netTopHitHeight = 28, netBottomHitHeight = 22;
 
 // ball variables
 var ball, paddle1, paddle2;
@@ -545,11 +546,11 @@ function ballPhysics() {
             }
         }
         ball.position.z = ballRadius;
-        ballDirZ *= -0.9;
+        ballDirZ *= -0.7;
         ballDirX *= 0.8;
         ballDirY *= 0.9;
 
-        if (Math.abs(ballDirZ) < 0.2) {
+        if (Math.abs(ballDirZ) < 0.5) {
             resetBall(0);
         } else {
             //play ball hit table sound
@@ -558,6 +559,22 @@ function ballPhysics() {
         }
     }
 
+    //Hit the net
+    var currBallX = ball.position.x, nextBallX = currBallX + ballDirX * ballSpeed;
+    // check if the ball crossed the net line from both sides
+    if ((currBallX >= 0 && nextBallX <= 0) || (currBallX <= 0 && nextBallX >= 0))
+    {
+        //hit the bottom part of the net -> switch ball direction
+        if (ball.position.z < netBottomHitHeight)
+        {
+            ballDirX*= -0.2;
+        }
+        //hit the top part of the net -> ball keeps going with lower speed
+        else if (ball.position.z < netTopHitHeight)
+        {
+            ballDirX*= 0.6;
+        }
+    }
 
     // update ball position over time
     ball.position.x += ballDirX * ballSpeed;
