@@ -184,7 +184,7 @@ function createScene() {
     }
 
     betweenTableLegsArray[0].position.set(-195, 0, -5.1);
-    betweenTableLegsArray[1].position.set(0, 95, -5.1);
+    betweenTableLegsArray[1].position.set(0, -95, -5.1);
     betweenTableLegsArray[2].position.set(195, 0, -5.1);
     betweenTableLegsArray[3].position.set(0, 95, -5.1);
 
