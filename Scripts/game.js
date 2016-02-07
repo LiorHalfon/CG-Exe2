@@ -23,6 +23,9 @@ var BALL_INIT_HEIGHT = 50, ballZSpeed = 0.15;
 var ballRadius = 4;
 var GAME_START_TIME = 1000, startTimer = GAME_START_TIME;
 
+// mirror variables
+var mirrorArray = [];
+
 // ball physics variables
 var gravity = 0.1, ballInactive = false;
 
@@ -261,6 +264,9 @@ function createScene() {
     paddle1.position.z = 30;
     paddle2.position.z = 30;
 
+    var verticalMirror;
+    var verticalMirrorMesh;
+
     // we iterate 10x (5x each side) to create pillars to show off shadows
     // this is for the pillars on the left
     for (var i = 0; i < 5; i++) {
@@ -281,7 +287,22 @@ function createScene() {
         backdrop.castShadow = true;
         backdrop.receiveShadow = true;
         scene.add(backdrop);
+
+        // Create mirror
+        verticalMirror = new THREE.Mirror(
+            renderer, camera, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color:0x889999 } );
+
+        verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 30, 300 ),
+            verticalMirror.material );
+        verticalMirrorMesh.add( verticalMirror );
+        verticalMirrorMesh.position.y = -214.9;
+        verticalMirrorMesh.position.z = -30;
+        verticalMirrorMesh.position.x = -50 + i * 100;
+        verticalMirrorMesh.rotateX(-Math.PI / 2);
+        scene.add( verticalMirrorMesh );
+        mirrorArray.push(verticalMirror);
     }
+
     // we iterate 10x (5x each side) to create pillars to show off shadows
     // this is for the pillars on the right
     for (var i = 0; i < 5; i++) {
@@ -302,6 +323,20 @@ function createScene() {
         backdrop.castShadow = true;
         backdrop.receiveShadow = true;
         scene.add(backdrop);
+
+        // Create mirror
+        verticalMirror = new THREE.Mirror(
+            renderer, camera, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color:0x889999 } );
+
+        verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 30, 300 ),
+            verticalMirror.material );
+        verticalMirrorMesh.add( verticalMirror );
+        verticalMirrorMesh.position.y = 214.9;
+        verticalMirrorMesh.position.z = -30;
+        verticalMirrorMesh.position.x = -50 + i * 100;
+        verticalMirrorMesh.rotateX(Math.PI / 2);
+        scene.add( verticalMirrorMesh );
+        mirrorArray.push(verticalMirror);
     }
 
     var ground = new THREE.Mesh(
@@ -504,6 +539,12 @@ function createScene() {
 function draw() {
     renderer.render(scene, camera);
     requestAnimationFrame(draw);
+
+    // render mirrors
+    for (i = 0; i<mirrorArray.length; i++)
+    {
+        mirrorArray[i].render();
+    }
 
     ballPhysics();
     paddlePhysics();
