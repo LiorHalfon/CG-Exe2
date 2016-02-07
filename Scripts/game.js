@@ -241,13 +241,12 @@ function createScene() {
     ball.receiveShadow = true;
     ball.castShadow = true;
 
-    paddle1 = new Paddle().createPaddle("blue");
+    paddle1 = new Paddle().createPaddle("blue", true);
     scene.add(paddle1);
     paddle1.receiveShadow = true;
     paddle1.castShadow = true;
 
-
-    paddle2 = new Paddle().createPaddle("red");
+    paddle2 = new Paddle().createPaddle("red", false);
 
     // // add the sphere to the scene
     scene.add(paddle2);
