@@ -718,9 +718,9 @@ function paddlePhysics() {
                 ballDirX = -ballDirX;
 
                 ballDirZ = -(ball.position.z * 0.02) + 3.2;
-                ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2 + Math.abs(paddle1DirY) / 8); // Y dir because side hits need to be strongr
+                ballDirX = Math.sign(ballDirX) * hitStr;
                 ballDirY = paddle1DirY * 0.5 * (0.5 + Math.random());
-                ballDirY *= (0.5 + Math.random());
+                //ballDirY *= (0.5 + Math.random());
 
                 //play hit ball sound
                 var rnd = Math.floor(Math.random() * 5);
@@ -749,7 +749,7 @@ function paddlePhysics() {
                 ballDirX = -ballDirX;
 
                 ballDirZ = -(ball.position.z * 0.02) + 3.2;
-                ballDirX = Math.sign(ballDirX) * (hitStr + Math.random() * hitStr / 2);
+                ballDirX = Math.sign(ballDirX) * (hitStr);
 
                 if (Math.floor(Math.random() * 2) % 2 == 0) {
                     //close corner

@@ -5,7 +5,7 @@ var paddleRadius = 15, handleDepth = 12;
 var paddleThickness = 2;
 
 var paddle1DirY = 0, paddle2DirY = 0, paddleSpeed = 5, paddleMaxSpeed = 8;
-var hitStr = 4.2;
+var hitStr = 5;
 var isSpacePressed = false, spaceKeyTimer = 0, INITIAL_SPACE_KEY_TIME = 800;
 ////////////////////////////
 
