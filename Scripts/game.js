@@ -546,9 +546,9 @@ function createScene() {
     scene.add(pointLight);
 
     // add a spot light
-    spotLight = new THREE.SpotLight(0xF8D898);
-    spotLight.position.set(300, -400, 460);
-    spotLight.intensity = 1.5;
+    spotLight = new THREE.DirectionalLight(0xffdddd, 1.5);
+    spotLight.position.set(500, -400, 600);
+    //spotLight.intensity = 1.5;
     spotLight.castShadow = true;
     scene.add(spotLight);
 
