@@ -109,12 +109,15 @@ function createScene() {
             });
     // create the plane's material
     var tableTexutre = THREE.ImageUtils.loadTexture("textures/blueTable.jpg");
-    tableTexutre.anisotropy = 16;
+    tableTexutre.anisotropy = 4;
     var planeMaterial =
-        new THREE.MeshLambertMaterial(
+        new THREE.MeshPhongMaterial(
             {
                 map: tableTexutre,
-                color: 0x777777
+                color: 0x777777,
+                transparent: true,
+                opacity: 0.7,
+                shininess: 300
             });
 
     // create the table's legs material
@@ -200,6 +203,17 @@ function createScene() {
 
     scene.add(plane);
     plane.receiveShadow = true;
+    plane.position.z = 0.2;
+
+    var tableMirror = new THREE.Mirror(renderer, camera,
+        {clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color: 0x555555});
+
+    var tableMirrorMesh = new THREE.Mesh(new THREE.PlaneGeometry(planeWidth, planeHeight),
+        tableMirror.material);
+    tableMirrorMesh.position.z = 0.1;
+    tableMirrorMesh.add( tableMirror );
+    mirrorArray.push(tableMirror);
+    scene.add(tableMirrorMesh);
 
     var shadowMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
@@ -289,7 +303,7 @@ function createScene() {
         scene.add(backdrop);
 
         // Create mirror only for the first 2 pillars (due to performance)
-        if ( i < 2) {
+        if ( i < 0) {
             verticalMirror = new THREE.Mirror(
                 renderer, camera, {clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color: 0x889999});
 
@@ -327,7 +341,7 @@ function createScene() {
         scene.add(backdrop);
 
         // Create mirror only for the first 2 pillars (due to performance)
-        if ( i < 2)
+        if ( i < 0)
         {
             verticalMirror = new THREE.Mirror(
                 renderer, camera, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color:0x889999 } );
@@ -533,7 +547,7 @@ function createScene() {
 
     // add a spot light
     spotLight = new THREE.SpotLight(0xF8D898);
-    spotLight.position.set(0, 0, 460);
+    spotLight.position.set(300, -400, 460);
     spotLight.intensity = 1.5;
     spotLight.castShadow = true;
     scene.add(spotLight);
@@ -733,8 +747,8 @@ function playerPaddleMovement() {
 // Handles camera and lighting logic
 function cameraPhysics() {
     // we can easily notice shadows if we dynamically move lights during the game
-    spotLight.position.x = ball.position.x * 2;
-    spotLight.position.y = ball.position.y * 2;
+    //spotLight.position.x = ball.position.x * 2;
+    //spotLight.position.y = ball.position.y * 2;
 
     // move to behind the player's paddle
     camera.position.x = paddle1.position.x - 120;
