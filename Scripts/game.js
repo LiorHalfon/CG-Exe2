@@ -126,7 +126,7 @@ function createScene() {
     // create the pillar's material
     var pillerTexture = THREE.ImageUtils.loadTexture("textures/pillar_texture.jpg");
     pillerTexture.wrapS = THREE.RepeatWrapping;
-    pillerTexture.wrapT = THREE.RepeatWrapping;
+    //pillerTexture.wrapT = THREE.RepeatWrapping;
     pillerTexture.repeat.set(4, 1);
     var pillarMaterial =
         new THREE.MeshLambertMaterial(
@@ -279,7 +279,7 @@ function createScene() {
     paddle2.position.z = 30;
 
     var verticalMirror;
-    var verticalMirrorMesh;
+    var pillarSide;
 
     // we iterate 10x (5x each side) to create pillars to show off shadows
     // this is for the pillars on the left
@@ -301,22 +301,6 @@ function createScene() {
         backdrop.castShadow = true;
         backdrop.receiveShadow = true;
         scene.add(backdrop);
-
-        // Create mirror only for the first 2 pillars (due to performance)
-        if ( i < 0) {
-            verticalMirror = new THREE.Mirror(
-                renderer, camera, {clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color: 0x889999});
-
-            verticalMirrorMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(30, 300),
-                verticalMirror.material);
-            verticalMirrorMesh.add(verticalMirror);
-            verticalMirrorMesh.position.y = -214.9;
-            verticalMirrorMesh.position.z = -30;
-            verticalMirrorMesh.position.x = -50 + i * 100;
-            verticalMirrorMesh.rotateX(-deg90);
-            scene.add(verticalMirrorMesh);
-            mirrorArray.push(verticalMirror);
-        }
     }
 
     // we iterate 10x (5x each side) to create pillars to show off shadows
@@ -337,25 +321,22 @@ function createScene() {
         backdrop.position.y = -230;
         backdrop.position.z = -30;
         backdrop.castShadow = true;
-        backdrop.receiveShadow        = true;
+        backdrop.receiveShadow = true;
         scene.add(backdrop);
 
-        // Create mirror only for the first 2 pillars (due to performance)
-        if ( i < 0)
-        {
-            verticalMirror = new THREE.Mirror(
-                renderer, camera, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color:0x889999 } );
-
-            verticalMirrorMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 30, 300 ),
-                verticalMirror.material );
-            verticalMirrorMesh.add( verticalMirror );
-            verticalMirrorMesh.position.y = 214.9;
-            verticalMirrorMesh.position.z = -30;
-            verticalMirrorMesh.position.x = -50 + i * 100;
-            verticalMirrorMesh.rotateX(deg90);
-            scene.add( verticalMirrorMesh );
-            mirrorArray.push(verticalMirror);
-        }
+        pillarSide = new THREE.Mesh( new THREE.PlaneBufferGeometry( 300, 30 ),
+            new THREE.MeshLambertMaterial(
+                {
+                    map: pillerTexture,
+                    color: 0xffffcc
+                }));
+        pillarSide.position.y = 214.9;
+        pillarSide.position.z = -30;
+        pillarSide.position.x = -50 + i * 100;
+        pillarSide.rotateX(deg90);
+        pillarSide.rotateZ(deg90);
+        pillarSide.receiveShadow = true;
+        scene.add( pillarSide );
     }
 
     var ground = new THREE.Mesh(
