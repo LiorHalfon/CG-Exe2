@@ -56,7 +56,7 @@ function setup() {
 function createScene() {
     // set the scene size
     var WIDTH = window.innerWidth - 10,
-        HEIGHT = 520;
+        HEIGHT = 505;
 
     // set some camera attributes
     var VIEW_ANGLE = 50,
@@ -727,10 +727,6 @@ function playerPaddleMovement() {
 
 // Handles camera and lighting logic
 function cameraPhysics() {
-    // we can easily notice shadows if we dynamically move lights during the game
-    //spotLight.position.x = ball.position.x * 2;
-    //spotLight.position.y = ball.position.y * 2;
-
     // move to behind the player's paddle
     camera.position.x = paddle1.position.x - 120;
     camera.position.y += (paddle1.position.y - camera.position.y) * 0.05;
