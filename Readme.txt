@@ -1,5 +1,5 @@
 Students:
-Lior Halfon 305275349
+Lior Halfon
 Hen Marom
 
 In order to see textures you'll need to run a local http server (so the browser can have access to the texture files).
